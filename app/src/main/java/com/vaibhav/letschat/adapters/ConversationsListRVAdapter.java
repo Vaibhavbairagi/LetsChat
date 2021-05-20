@@ -1,6 +1,7 @@
 package com.vaibhav.letschat.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,6 +75,7 @@ public class ConversationsListRVAdapter extends RecyclerView.Adapter<Conversatio
             c.getUnreadMessagesCount(new CallbackListener<Long>() {
                 @Override
                 public void onSuccess(Long result) {
+                    Log.d("twilioConv: ", "onSuccess: "+result);
                     if (result != null && result > 0) {
                         holder.unreadMsgCountTV.setVisibility(View.VISIBLE);
                         holder.unreadMsgCountTV.setText(String.valueOf(result));
