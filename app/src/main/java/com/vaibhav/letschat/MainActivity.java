@@ -37,6 +37,7 @@ import retrofit2.Retrofit;
 public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = "LetsChat";
+    //Todo:change user details
     public String userId = "Hiv2", userName = "Vaibhav Bairagi";
 
     RelativeLayout fullscreenProgressLayout;
@@ -163,14 +164,23 @@ public class MainActivity extends AppCompatActivity {
                     FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
                         @Override
                         public void onComplete(@NonNull @NotNull Task<String> task) {
-
+                            String token = task.getResult();
+                            appPreferences.saveFCMToken(token);
+                            conversationsClient.registerFCMToken(new ConversationsClient.FCMToken(token), new StatusListener() {
+                                @Override
+                                public void onSuccess() {
+                                    Log.d(MainActivity.TAG, "AppPref FCM and ConvPref FCM made same");
+                                    conversationsPreferences.saveRegisteredFCMToken(token);
+                                }
+                            });
                         }
                     });
                 } else if (ft != null && !ft.equals(rft)) {
                     conversationsClient.registerFCMToken(new ConversationsClient.FCMToken(appPreferences.getFCMToken()), new StatusListener() {
                         @Override
                         public void onSuccess() {
-                            Log.d(MainActivity.TAG, "YAY");
+                            Log.d(MainActivity.TAG, "Updated ConvPref FCM to match exisiting");
+                            conversationsPreferences.saveRegisteredFCMToken(ft);
                         }
                     });
                 }
