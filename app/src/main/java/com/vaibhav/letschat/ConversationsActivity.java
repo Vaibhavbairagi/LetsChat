@@ -33,7 +33,12 @@ import com.vaibhav.letschat.utils.RetrofitClient;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -77,12 +82,38 @@ public class ConversationsActivity extends AppCompatActivity implements OnConver
         chatsListRV.setAdapter(conversationsListRVAdapter);
         conversationsListRVAdapter.notifyDataSetChanged();
 
-        requestNewAccessTokenFromServer();
+        //Check if the accessToken already present in the device is valid, 24hr ttl
+        if(conversationsPreferences.getTokenCreationTime()==null){
+            //Token doesn't exist on device
+            requestNewAccessTokenFromServer();
+        }
+        else {
+            //Token exists check validity
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date date = Calendar.getInstance().getTime(), tokenCreationTime = new Date();
+            Log.d(TAG, "onCreate: " + dateFormat.format(date));
+            try {
+                tokenCreationTime = dateFormat.parse(conversationsPreferences.getTokenCreationTime());
+                Log.d(TAG, "onCreate: "+dateFormat.format(tokenCreationTime));
+            } catch (ParseException e) {
+                //Won't end up here based on design.
+                e.printStackTrace();
+            }
+            //Token expired, request new
+            Log.d(TAG, "onCreate: "+(date.getTime() - tokenCreationTime.getTime()));
+            if ((date.getTime() - tokenCreationTime.getTime()) / 1000 > 86400) {
+                requestNewAccessTokenFromServer();
+            } else {
+                //accessToken already exists use that
+                accessToken = conversationsPreferences.getAccessToken();
+                initializeConvClientWithAccessToken();
+            }
+        }
     }
 
     private void requestNewAccessTokenFromServer() {
+        Log.d(TAG, "Requesting New Access Token From Server.");
         Retrofit retrofit = RetrofitClient.getInstance();
-
         ChatAPI chatAPI = retrofit.create(ChatAPI.class);
 
         Call<AccessTokenResponse> call = chatAPI.generateNewAccessToken(userId);
@@ -92,9 +123,9 @@ public class ConversationsActivity extends AppCompatActivity implements OnConver
                 if (response.body() != null) {
                     accessToken = response.body().getToken();
                     conversationsPreferences.saveAccessToken(accessToken);
+                    conversationsPreferences.saveTokenCreationTime(response.body().getTokenCreationTime());
                     Log.d(TAG, "Access token fetched:" + accessToken);
                     initializeConvClientWithAccessToken();
-                    Log.d(TAG, "Access token init");
                 } else {
                     Log.d(TAG, "Access token null");
                 }
@@ -182,7 +213,7 @@ public class ConversationsActivity extends AppCompatActivity implements OnConver
                             conversationsClient.registerFCMToken(new ConversationsClient.FCMToken(token), new StatusListener() {
                                 @Override
                                 public void onSuccess() {
-                                    Log.d(ConversationsActivity.TAG, "AppPref FCM and ConvPref FCM made same");
+                                    Log.d(ConversationsActivity.TAG, "AppPref FCM and ConvPref FCM created and updated");
                                     conversationsPreferences.saveRegisteredFCMToken(token);
                                 }
                             });

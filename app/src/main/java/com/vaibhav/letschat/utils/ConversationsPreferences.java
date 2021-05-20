@@ -24,6 +24,14 @@ public class ConversationsPreferences {
         return conversationPreferences.getString("AccessToken", null);
     }
 
+    public String getTokenCreationTime() {
+        return conversationPreferences.getString("TokenCreationTime", null);
+    }
+
+    public void saveTokenCreationTime(String tokenCreationTime) {
+        conversationPreferences.edit().putString("TokenCreationTime", tokenCreationTime).apply();
+    }
+
     public void saveRegisteredFCMToken(String fcmToken) {
         conversationPreferences.edit().putString("RegisteredFCMToken", fcmToken).apply();
     }
