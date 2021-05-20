@@ -4,7 +4,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
-    public static final String BASE_URL = "https://aqueous-basin-30393.herokuapp.com/";
+    public static final String BASE_URL = "https://aqueous-basin-30393.herokuapp.com";
     public static Retrofit retrofit;
 
     public static Retrofit getInstance(){

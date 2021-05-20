@@ -20,6 +20,7 @@ import com.twilio.conversations.ConversationsClientListener;
 import com.twilio.conversations.ErrorInfo;
 import com.twilio.conversations.StatusListener;
 import com.twilio.conversations.User;
+import com.vaibhav.letschat.api.AccessTokenResponse;
 import com.vaibhav.letschat.api.ChatAPI;
 import com.vaibhav.letschat.utils.AppPreferences;
 import com.vaibhav.letschat.utils.ConversationsPreferences;
@@ -38,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = "LetsChat";
     //Todo:change user details
-    public String userId = "Hiv2", userName = "Vaibhav Bairagi";
+    public String userId = "Hellov2", userName = "Vaibhav Bairagi";
 
     RelativeLayout fullscreenProgressLayout;
 
@@ -77,21 +78,26 @@ public class MainActivity extends AppCompatActivity {
 
         ChatAPI chatAPI = retrofit.create(ChatAPI.class);
 
-        Call<String> call = chatAPI.generateNewAccessToken(userId);
-        call.enqueue(new Callback<String>() {
+        Call<AccessTokenResponse> call = chatAPI.generateNewAccessToken(userId);
+        call.enqueue(new Callback<AccessTokenResponse>() {
             @Override
-            public void onResponse(Call<String> call, Response<String> response) {
+            public void onResponse(Call<AccessTokenResponse> call, Response<AccessTokenResponse> response) {
                 if (response.body() != null) {
-                    accessToken = response.body();
+                    accessToken = response.body().getToken();
                     conversationsPreferences.saveAccessToken(accessToken);
+                    Log.d(TAG, "Access token fetched:"+accessToken);
                     initializeConvClientWithAccessToken();
-                    Log.d(TAG, "Access token fetched");
+                    Log.d(TAG, "Access token init");
+                }
+                else {
+                    Log.d(TAG, "Access token null");
                 }
             }
 
             @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                Toast.makeText(context, "Access token couldn't be generated", Toast.LENGTH_SHORT).show();
+            public void onFailure(Call<AccessTokenResponse> call, Throwable t) {
+                Log.d(TAG, "Access token fail:"+t.getMessage());
+                Toast.makeText(context, "Access token couldn't be generated: "+t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -179,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
                     conversationsClient.registerFCMToken(new ConversationsClient.FCMToken(appPreferences.getFCMToken()), new StatusListener() {
                         @Override
                         public void onSuccess() {
-                            Log.d(MainActivity.TAG, "Updated ConvPref FCM to match exisiting");
+                            Log.d(MainActivity.TAG, "Updated ConvPref FCM to match existing");
                             conversationsPreferences.saveRegisteredFCMToken(ft);
                         }
                     });
@@ -236,8 +242,11 @@ public class MainActivity extends AppCompatActivity {
         if (conversationsClient.getMyConversations() != null) {
             conversations.addAll(conversationsClient.getMyConversations());
             for (Conversation c : conversations) {
-                Log.d(TAG, c.getUniqueName());
+                Log.d(TAG, "fetchConversationsList: "+c.getSid());
             }
+        }
+        else{
+            Log.d(TAG, "fetchConversationsList: Null");
         }
     }
 
