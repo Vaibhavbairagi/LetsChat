@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rl_conv_li_parent"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cv_1"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="30dp"
+        app:cardElevation="0dp">
+
+        <ImageView
+            android:id="@+id/iv_conv_img"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/light_grey_1"
+            android:padding="8dp"
+            app:srcCompat="@drawable/ic_baseline_person_48" />
+    </androidx.cardview.widget.CardView>
+
+    <TextView
+        android:id="@+id/tv_conv_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/cv_1"
+        android:layout_alignEnd="@id/rl_cli_1"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="16dp"
+        android:layout_toEndOf="@id/cv_1"
+        android:ellipsize="end"
+        android:fontFamily="@font/poppins_semibold"
+        android:maxLines="1"
+        android:text="Vaibhav Bairagi"
+        android:textColor="@color/black"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/tv_conv_last_msg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_conv_name"
+        android:layout_alignStart="@id/tv_conv_name"
+        android:layout_alignEnd="@id/rl_cli_1"
+        android:layout_marginEnd="16dp"
+        android:layout_toEndOf="@id/cv_1"
+        android:ellipsize="end"
+        android:fontFamily="@font/poppins_medium"
+        android:maxLines="1"
+        android:text="Hi!! How are you?"
+        android:textSize="16sp" />
+
+    <RelativeLayout
+        android:id="@+id/rl_cli_1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="24dp"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/tv_last_msg_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/dark_blue"
+            android:visibility="gone" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_below="@id/tv_last_msg_time"
+            android:layout_marginTop="4dp"
+            android:visibility="gone"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp">
+
+            <TextView
+                android:id="@+id/tv_conv_unread_msg_count"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/dark_blue"
+                android:textSize="12sp"
+                android:gravity="center"
+                android:textColor="@color/white" />
+        </androidx.cardview.widget.CardView>
+    </RelativeLayout>
+</RelativeLayout>

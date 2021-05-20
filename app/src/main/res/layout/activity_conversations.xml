@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.ChatsFragment">
+    android:animateLayoutChanges="true"
+    tools:context=".ConversationsActivity">
 
     <TextView
         android:id="@+id/tv_lets_chat"
@@ -15,7 +17,7 @@
         android:layout_marginBottom="16dp"
         android:fontFamily="@font/poppins_semibold"
         android:text="LetsChat"
-        android:textColor="#000000"
+        android:textColor="@color/dark_blue"
         android:textSize="30sp" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -23,5 +25,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/tv_lets_chat" />
+
+    <include layout="@layout/fullscreen_progress_layout_light_bg" />
 
 </RelativeLayout>

@@ -2,7 +2,6 @@ package com.vaibhav.letschat.fcm;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -10,7 +9,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.twilio.conversations.ConversationsClient;
 import com.twilio.conversations.StatusListener;
 import com.vaibhav.letschat.AppController;
-import com.vaibhav.letschat.MainActivity;
+import com.vaibhav.letschat.ConversationsActivity;
 import com.vaibhav.letschat.utils.AppPreferences;
 import com.vaibhav.letschat.utils.ConversationsPreferences;
 
@@ -33,7 +32,7 @@ public class RegistrationIntentService extends IntentService {
                 @Override
                 public void onSuccess() {
                     ConversationsPreferences.getInstance().saveRegisteredFCMToken(fcmToken);
-                    Log.d(MainActivity.TAG, "YAY "+fcmToken);
+                    Log.d(ConversationsActivity.TAG, "YAY "+fcmToken);
                 }
             });
             subscribeTopics(fcmToken);
