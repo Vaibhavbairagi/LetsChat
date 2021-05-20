@@ -13,5 +13,7 @@ public class OneToOneConversationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_one_to_one_conversation);
         sid = getIntent().getExtras().getString("conversationSid");
+
+
     }
 }

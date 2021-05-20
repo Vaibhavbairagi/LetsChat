@@ -77,30 +77,29 @@ public class ConversationsActivity extends AppCompatActivity implements OnConver
         fullscreenProgressLayout = findViewById(R.id.fullscreen_progress_layout);
         chatsListRV = findViewById(R.id.rv_chats_list);
 
-        conversationsListRVAdapter = new ConversationsListRVAdapter(conversations, context);
+        conversationsListRVAdapter = new ConversationsListRVAdapter(conversations, context, this);
         chatsListRV.setLayoutManager(new LinearLayoutManager(this));
         chatsListRV.setAdapter(conversationsListRVAdapter);
         conversationsListRVAdapter.notifyDataSetChanged();
 
         //Check if the accessToken already present in the device is valid, 24hr ttl
-        if(conversationsPreferences.getTokenCreationTime()==null){
+        if (conversationsPreferences.getTokenCreationTime() == null) {
             //Token doesn't exist on device
             requestNewAccessTokenFromServer();
-        }
-        else {
+        } else {
             //Token exists check validity
             DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             Date date = Calendar.getInstance().getTime(), tokenCreationTime = new Date();
             Log.d(TAG, "onCreate: " + dateFormat.format(date));
             try {
                 tokenCreationTime = dateFormat.parse(conversationsPreferences.getTokenCreationTime());
-                Log.d(TAG, "onCreate: "+dateFormat.format(tokenCreationTime));
+                Log.d(TAG, "onCreate: " + dateFormat.format(tokenCreationTime));
             } catch (ParseException e) {
                 //Won't end up here based on design.
                 e.printStackTrace();
             }
             //Token expired, request new
-            Log.d(TAG, "onCreate: "+(date.getTime() - tokenCreationTime.getTime()));
+            Log.d(TAG, "onCreate: " + (date.getTime() - tokenCreationTime.getTime()));
             if ((date.getTime() - tokenCreationTime.getTime()) / 1000 > 86400) {
                 requestNewAccessTokenFromServer();
             } else {

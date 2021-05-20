@@ -17,6 +17,7 @@ import com.twilio.conversations.CallbackListener;
 import com.twilio.conversations.Conversation;
 import com.twilio.conversations.Message;
 import com.vaibhav.letschat.R;
+import com.vaibhav.letschat.listeners.OnConversationClickedListener;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -29,10 +30,12 @@ public class ConversationsListRVAdapter extends RecyclerView.Adapter<Conversatio
     ArrayList<Conversation> conversations;
     Context context;
     int lastPosition = -1;
+    OnConversationClickedListener onConversationClickedListener;
 
-    public ConversationsListRVAdapter(ArrayList<Conversation> conversations, Context context){
+    public ConversationsListRVAdapter(ArrayList<Conversation> conversations, Context context, OnConversationClickedListener onConversationClickedListener) {
         this.conversations = conversations;
         this.context = context;
+        this.onConversationClickedListener = onConversationClickedListener;
     }
 
     @NonNull
@@ -40,7 +43,7 @@ public class ConversationsListRVAdapter extends RecyclerView.Adapter<Conversatio
     @Override
     public ConversationsItemViewHolder onCreateViewHolder(@NonNull @NotNull ViewGroup parent, int viewType) {
         return new ConversationsItemViewHolder(
-                LayoutInflater.from(parent.getContext()).inflate(R.layout.conversation_list_item,parent,false));
+                LayoutInflater.from(parent.getContext()).inflate(R.layout.conversation_list_item, parent, false));
     }
 
     @Override
@@ -55,33 +58,39 @@ public class ConversationsListRVAdapter extends RecyclerView.Adapter<Conversatio
         Conversation c = conversations.get(position);
         //TODO: display required data
         holder.nameTV.setText(c.getFriendlyName());
-       if (c.getLastMessageIndex()!=null){
-           holder.lastMsgTimeTV.setVisibility(View.VISIBLE);
-           c.getMessageByIndex(c.getLastMessageIndex(), new CallbackListener<Message>() {
-               @Override
-               public void onSuccess(Message result) {
-                   holder.lastMsgTV.setText(result.getMessageBody());
-               }
-           });
-           Date lmsgDate = c.getLastMessageDate();
-           SimpleDateFormat sdf = new SimpleDateFormat("kk:mm");
-           String lastMsgTime = sdf.format(lmsgDate);
-           holder.lastMsgTimeTV.setText(lastMsgTime);
-           c.getUnreadMessagesCount(new CallbackListener<Long>() {
-               @Override
-               public void onSuccess(Long result) {
-                   if (result!=null && result>0){
-                       holder.unreadMsgCountTV.setVisibility(View.VISIBLE);
-                       holder.unreadMsgCountTV.setText(String.valueOf(result));
-                   } else {
-                       holder.unreadMsgCountTV.setVisibility(View.GONE);
-                   }
-               }
-           });
-       } else {
-           holder.unreadMsgCountTV.setVisibility(View.GONE);
-           holder.lastMsgTimeTV.setVisibility(View.GONE);
-       }
+        if (c.getLastMessageIndex() != null) {
+            holder.lastMsgTimeTV.setVisibility(View.VISIBLE);
+            c.getMessageByIndex(c.getLastMessageIndex(), new CallbackListener<Message>() {
+                @Override
+                public void onSuccess(Message result) {
+                    holder.lastMsgTV.setText(result.getMessageBody());
+                }
+            });
+            Date lmsgDate = c.getLastMessageDate();
+            SimpleDateFormat sdf = new SimpleDateFormat("kk:mm");
+            String lastMsgTime = sdf.format(lmsgDate);
+            holder.lastMsgTimeTV.setText(lastMsgTime);
+            c.getUnreadMessagesCount(new CallbackListener<Long>() {
+                @Override
+                public void onSuccess(Long result) {
+                    if (result != null && result > 0) {
+                        holder.unreadMsgCountTV.setVisibility(View.VISIBLE);
+                        holder.unreadMsgCountTV.setText(String.valueOf(result));
+                    } else {
+                        holder.unreadMsgCountTV.setVisibility(View.GONE);
+                    }
+                }
+            });
+        } else {
+            holder.unreadMsgCountTV.setVisibility(View.GONE);
+            holder.lastMsgTimeTV.setVisibility(View.GONE);
+        }
+        holder.parent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onConversationClickedListener.onConversationClicked(position);
+            }
+        });
     }
 
     @Override
@@ -99,6 +108,7 @@ public class ConversationsListRVAdapter extends RecyclerView.Adapter<Conversatio
         RelativeLayout parent;
         TextView nameTV, lastMsgTV, lastMsgTimeTV, unreadMsgCountTV;
         ImageView profileIV;
+
         public ConversationsItemViewHolder(@NonNull @NotNull View itemView) {
             super(itemView);
             parent = itemView.findViewById(R.id.rl_conv_li_parent);
