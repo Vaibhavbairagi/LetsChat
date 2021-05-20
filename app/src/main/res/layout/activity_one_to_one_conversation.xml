@@ -41,10 +41,55 @@
                 android:src="@drawable/ic_baseline_person_48" />
         </androidx.cardview.widget.CardView>
 
+        <TextView
+            android:id="@+id/iv_otoc_convoName"
+            android:text="Conversation Name"
+            android:gravity="center"
+            android:layout_centerVertical="true"
+            android:layout_margin="4dp"
+            android:textSize="18sp"
+            android:textColor="@color/black"
+            android:layout_toEndOf="@id/cv_otoc_1"
+            android:layout_toStartOf="@id/iv_otoc_voiceCall"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:fontFamily="@font/poppins_semibold"/>
+
+        <ImageView
+            android:id="@+id/iv_otoc_videoCall"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:adjustViewBounds="true"
+            android:padding="8dp"
+            android:src="@drawable/ic_baseline_videocam_24" />
+
+        <ImageView
+            android:id="@+id/iv_otoc_voiceCall"
+            android:layout_toStartOf="@id/iv_otoc_videoCall"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_centerVertical="true"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:adjustViewBounds="true"
+            android:padding="8dp"
+            android:src="@drawable/ic_baseline_call_24" />
+
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
     </RelativeLayout>
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/messageRecyclerView"
+        android:layout_below="@id/rl_otoc_toolbar_layout"/>
 </RelativeLayout>

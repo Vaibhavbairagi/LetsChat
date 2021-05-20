@@ -70,6 +70,7 @@ public class ConversationsListRVAdapter extends RecyclerView.Adapter<Conversatio
             SimpleDateFormat sdf = new SimpleDateFormat("kk:mm");
             String lastMsgTime = sdf.format(lmsgDate);
             holder.lastMsgTimeTV.setText(lastMsgTime);
+
             c.getUnreadMessagesCount(new CallbackListener<Long>() {
                 @Override
                 public void onSuccess(Long result) {

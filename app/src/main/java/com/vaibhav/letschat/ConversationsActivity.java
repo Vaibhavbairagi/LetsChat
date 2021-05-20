@@ -93,7 +93,7 @@ public class ConversationsActivity extends AppCompatActivity implements OnConver
             Log.d(TAG, "onCreate: " + dateFormat.format(date));
             try {
                 tokenCreationTime = dateFormat.parse(conversationsPreferences.getTokenCreationTime());
-                Log.d(TAG, "onCreate: " + dateFormat.format(tokenCreationTime));
+                Log.d(TAG, "onCreate: "+tokenCreationTime);
             } catch (ParseException e) {
                 //Won't end up here based on design.
                 e.printStackTrace();
@@ -123,7 +123,7 @@ public class ConversationsActivity extends AppCompatActivity implements OnConver
                     accessToken = response.body().getToken();
                     conversationsPreferences.saveAccessToken(accessToken);
                     conversationsPreferences.saveTokenCreationTime(response.body().getTokenCreationTime());
-                    Log.d(TAG, "Access token fetched:" + accessToken);
+                    Log.d(TAG, "Access token fetched: " + accessToken);
                     initializeConvClientWithAccessToken();
                 } else {
                     Log.d(TAG, "Access token null");
