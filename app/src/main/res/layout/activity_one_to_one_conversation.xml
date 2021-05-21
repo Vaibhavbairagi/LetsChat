@@ -28,9 +28,9 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_centerVertical="true"
-            android:layout_toEndOf="@id/iv_otoc_back"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
+            android:layout_toEndOf="@id/iv_otoc_back"
             app:cardCornerRadius="24dp"
             app:cardElevation="0dp">
 
@@ -45,26 +45,26 @@
 
         <TextView
             android:id="@+id/iv_otoc_convoName"
-            android:text="Conversation Name"
-            android:gravity="center"
-            android:layout_centerVertical="true"
-            android:layout_margin="4dp"
-            android:textSize="18sp"
-            android:textColor="@color/black"
-            android:layout_toEndOf="@id/cv_otoc_1"
-            android:layout_toStartOf="@id/iv_otoc_voiceCall"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:maxLines="1"
+            android:layout_centerVertical="true"
+            android:layout_margin="4dp"
+            android:layout_toStartOf="@id/iv_otoc_voiceCall"
+            android:layout_toEndOf="@id/cv_otoc_1"
             android:ellipsize="end"
-            android:fontFamily="@font/poppins_semibold"/>
+            android:fontFamily="@font/poppins_semibold"
+            android:gravity="center"
+            android:maxLines="1"
+            android:text="Conversation Name"
+            android:textColor="@color/black"
+            android:textSize="18sp" />
 
         <ImageView
             android:id="@+id/iv_otoc_videoCall"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_centerVertical="true"
             android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             android:adjustViewBounds="true"
@@ -73,12 +73,12 @@
 
         <ImageView
             android:id="@+id/iv_otoc_voiceCall"
-            android:layout_toStartOf="@id/iv_otoc_videoCall"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_centerVertical="true"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
+            android:layout_toStartOf="@id/iv_otoc_videoCall"
             android:adjustViewBounds="true"
             android:padding="10dp"
             android:src="@drawable/ic_baseline_call_24" />
@@ -89,11 +89,90 @@
 
     </RelativeLayout>
 
+    <ProgressBar
+        android:id="@+id/progress_top_otoc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:layout_below="@id/rl_otoc_toolbar_layout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="4dp" />
+
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/messageRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/messageRecyclerView"
+        android:layout_above="@id/rl_otoc_send_msg_layout"
+        android:layout_below="@id/progress_top_otoc"
         android:paddingTop="8dp"
-        android:paddingBottom="8dp"
-        android:layout_below="@id/rl_otoc_toolbar_layout"/>
+        android:paddingBottom="8dp" />
+
+    <RelativeLayout
+        android:id="@+id/rl_otoc_send_msg_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:animateLayoutChanges="true"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cv_otoc_2"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="4dp"
+            android:background="@color/dark_blue"
+            app:cardBackgroundColor="@color/dark_blue"
+            app:cardCornerRadius="24dp">
+
+            <ImageButton
+                android:id="@+id/ib_otoc_send_msg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/transparent"
+                android:src="@drawable/ic_baseline_send_24" />
+        </androidx.cardview.widget.CardView>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_toStartOf="@id/cv_otoc_2"
+            android:background="@drawable/rc_stroke_bg">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cv_otoc_3"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_centerVertical="true"
+                android:layout_margin="4dp"
+                app:cardBackgroundColor="@color/dark_blue"
+                app:cardCornerRadius="24dp">
+
+                <ImageButton
+                    android:id="@+id/ib_otoc_attach"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/transparent"
+                    android:src="@drawable/ic_baseline_attach_file_24" />
+            </androidx.cardview.widget.CardView>
+
+
+            <EditText
+                android:id="@+id/et_otoc_send_msg_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="16dp"
+                android:layout_toEndOf="@id/cv_otoc_3"
+                android:backgroundTint="@color/transparent"
+                android:hint="Message" />
+
+        </RelativeLayout>
+    </RelativeLayout>
 </RelativeLayout>

@@ -45,6 +45,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:fontFamily="@font/poppins_medium"
+                android:gravity="center_vertical"
                 android:maxWidth="260dp"
                 android:maxLines="20"
                 android:paddingStart="24dp"
