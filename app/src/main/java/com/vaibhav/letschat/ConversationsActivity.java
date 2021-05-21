@@ -123,6 +123,9 @@ public class ConversationsActivity extends AppCompatActivity implements OnConver
                     accessToken = response.body().getToken();
                     conversationsPreferences.saveAccessToken(accessToken);
                     conversationsPreferences.saveTokenCreationTime(response.body().getTokenCreationTime());
+                    if (conversationsPreferences.getCurrentUserId() == null) {
+                        conversationsPreferences.saveCurrentUserId(userId);
+                    }
                     Log.d(TAG, "Access token fetched: " + accessToken);
                     initializeConvClientWithAccessToken();
                 } else {
@@ -146,6 +149,9 @@ public class ConversationsActivity extends AppCompatActivity implements OnConver
                 AppController.getInstance().setConversationsClient(result);
                 conversationsClient = AppController.getInstance().getConversationsClient();
                 conversationsClient.addListener(conversationsClientListener);
+                if (conversationsPreferences.getCurrentUserId() == null) {
+                    conversationsPreferences.saveCurrentUserId(userId);
+                }
                 Log.d(ConversationsActivity.TAG, "Twilio Conversation Client created successfully");
             }
 

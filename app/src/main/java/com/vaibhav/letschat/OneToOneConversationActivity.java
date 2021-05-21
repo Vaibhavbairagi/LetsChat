@@ -1,6 +1,7 @@
 package com.vaibhav.letschat;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
@@ -16,6 +17,7 @@ import com.twilio.conversations.CallbackListener;
 import com.twilio.conversations.Conversation;
 import com.twilio.conversations.ErrorInfo;
 import com.twilio.conversations.Message;
+import com.vaibhav.letschat.adapters.ConversationsMessageRVAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,8 +30,9 @@ public class OneToOneConversationActivity extends AppCompatActivity {
     TextView convoNameTv;
     ImageView backButtonIv, voiceCallIv, videoCallIv, convoImgIv;
     RecyclerView msgRecyclerView;
-    Conversation c;
+    Conversation conversation;
     Context context;
+    ConversationsMessageRVAdapter conversationsMessageRVAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,10 +47,16 @@ public class OneToOneConversationActivity extends AppCompatActivity {
         convoImgIv = findViewById(R.id.iv_otoc_profile_image);
         msgRecyclerView = findViewById(R.id.messageRecyclerView);
 
+        conversationsMessageRVAdapter = new ConversationsMessageRVAdapter(messages, context);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setStackFromEnd(true);
+        msgRecyclerView.setLayoutManager(layoutManager);
+        msgRecyclerView.setAdapter(conversationsMessageRVAdapter);
+
         AppController.getInstance().getConversationsClient().getConversation(sid, new CallbackListener<Conversation>() {
             @Override
             public void onSuccess(Conversation result) {
-                c = result;
+                conversation = result;
                 initPageSetup();
             }
 
@@ -67,13 +76,13 @@ public class OneToOneConversationActivity extends AppCompatActivity {
             }
         });
         //todo: change this to display the other user name
-        convoNameTv.setText(c.getFriendlyName());
+        convoNameTv.setText(conversation.getFriendlyName());
         //gets last 30 messages
-        c.getLastMessages(30, new CallbackListener<List<Message>>() {
+        conversation.getLastMessages(30, new CallbackListener<List<Message>>() {
             @Override
             public void onSuccess(List<Message> result) {
                 messages.addAll(result);
-                //setup recycler view now
+                conversationsMessageRVAdapter.notifyDataSetChanged();
             }
         });
     }

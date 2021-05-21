@@ -51,8 +51,8 @@ public class ConversationsListRVAdapter extends RecyclerView.Adapter<Conversatio
     public void onBindViewHolder(@NonNull @NotNull ConversationsListRVAdapter.ConversationsItemViewHolder holder, int position) {
 
         Animation animation = AnimationUtils.loadAnimation(context,
-                (position > lastPosition) ? R.anim.up_from_bottom
-                        : R.anim.down_from_top);
+                (position > lastPosition) ? R.anim.up_from_bottom_1000_ms
+                        : R.anim.down_from_top_1000ms);
         holder.itemView.startAnimation(animation);
         lastPosition = position;
 

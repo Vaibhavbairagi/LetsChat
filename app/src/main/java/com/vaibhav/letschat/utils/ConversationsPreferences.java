@@ -16,6 +16,14 @@ public class ConversationsPreferences {
         return convPref;
     }
 
+    public void saveCurrentUserId(String userId){
+        conversationPreferences.edit().putString("CurrentUserId",userId).apply();
+    }
+
+    public String getCurrentUserId(){
+        return conversationPreferences.getString("CurrentUserId", null);
+    }
+
     public void saveAccessToken(String accessToken) {
         conversationPreferences.edit().putString("AccessToken", accessToken).apply();
     }
