@@ -30,7 +30,7 @@
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="8dp"
         app:cardBackgroundColor="@color/dark_blue"
-        app:cardCornerRadius="24dp"
+        app:cardCornerRadius="32dp"
         app:cardPreventCornerOverlap="false"
         app:cardUseCompatPadding="true">
 
@@ -49,9 +49,9 @@
                 android:maxWidth="260dp"
                 android:maxLines="20"
                 android:paddingStart="24dp"
-                android:paddingTop="16dp"
+                android:paddingTop="14dp"
                 android:paddingEnd="24dp"
-                android:paddingBottom="16dp"
+                android:paddingBottom="14dp"
                 android:text="This is a Message"
                 android:textColor="@color/white"
                 android:textSize="16sp" />

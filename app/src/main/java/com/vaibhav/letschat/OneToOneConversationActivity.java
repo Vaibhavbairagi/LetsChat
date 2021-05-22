@@ -2,15 +2,17 @@ package com.vaibhav.letschat;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -30,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class OneToOneConversationActivity extends AppCompatActivity implements ConversationListener {
 
@@ -45,10 +48,14 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
     EditText sendMsgTextET;
     ImageButton sendIBtn, attachIBtn;
     ProgressBar topProgress;
+    TextView loadingIndicator;
+    boolean isMessageSent = false;
 
     boolean isOldMessagesLoading = false;
 
     private final int LOAD_MESSAGE_COUNT = 30;
+
+    LinearLayoutManager layoutManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,9 +73,10 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
         attachIBtn = findViewById(R.id.ib_otoc_attach);
         sendMsgTextET = findViewById(R.id.et_otoc_send_msg_text);
         topProgress = findViewById(R.id.progress_top_otoc);
+        loadingIndicator = findViewById(R.id.tv_otoc_loading_indicator);
 
         conversationsMessageRVAdapter = new ConversationsMessageRVAdapter(messages, context);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager = new LinearLayoutManager(this);
         layoutManager.setStackFromEnd(true);
         msgRecyclerView.setLayoutManager(layoutManager);
         msgRecyclerView.setAdapter(conversationsMessageRVAdapter);
@@ -101,7 +109,8 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
         loadLastMessages();
         sendIBtn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) { ;
+            public void onClick(View view) {
+                ;
                 String msg = sendMsgTextET.getText().toString();
                 if (!msg.isEmpty()) {
                     sendMsgTextET.setText("");
@@ -114,17 +123,55 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
     }
 
     private void sendMessage(String messageBody) {
+        isMessageSent = false;
         if (conversation != null) {
             Message.Options options = Message.options().withBody(messageBody);
             Log.d(TAG, "Message created");
+            loadingIndicator.setVisibility(View.VISIBLE);
+            Thread loadingTimer = new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        int loadTime = 0;
+                        while (!isMessageSent) {
+
+                            sleep(400);
+
+                            if (loadTime < 400) {
+                                setLoadingText("Sending.");
+                            } else if (loadTime < 800) {
+                                setLoadingText("Sending..");
+                            } else {
+                                setLoadingText("Sending...");
+                            }
+                            loadTime = loadTime + 400;
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        Log.d(TAG,e.getLocalizedMessage());
+                    }
+                }
+            };
+            loadingTimer.start();
             conversation.sendMessage(options, new CallbackListener<Message>() {
                 @Override
                 public void onSuccess(Message message) {
                     Log.d(TAG, "Message sent");
+                    isMessageSent = true;
+                    loadingIndicator.setVisibility(View.GONE);
                     //todo: implement ticks
                 }
             });
         }
+    }
+
+    private void setLoadingText(final CharSequence text) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                loadingIndicator.setText(text);
+            }
+        });
     }
 
     private void loadLastMessages() {
@@ -137,7 +184,7 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
                 if (result.size() > 0) {
                     topProgress.setVisibility(View.GONE);
                     messages.addAll(result);
-                    conversationsMessageRVAdapter.notifyDataSetChanged();
+                    conversationsMessageRVAdapter.notifyMyDataChanged();
                     initScrollUpToLoadMoreFeature();
                 }
             }
@@ -187,16 +234,24 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
     }
 
     private void loadPreviousMessages() {
-        if (messages.get(0).getMessageIndex() > 0){
-            conversation.getMessagesBefore(messages.get(0).getMessageIndex()-1, LOAD_MESSAGE_COUNT, new CallbackListener<List<Message>>() {
+        if (messages.get(0).getMessageIndex() > 0) {
+            topProgress.setVisibility(View.VISIBLE);
+            conversation.getMessagesBefore(messages.get(0).getMessageIndex() - 1, LOAD_MESSAGE_COUNT, new CallbackListener<List<Message>>() {
                 @Override
                 public void onSuccess(List<Message> result) {
                     isOldMessagesLoading = false;
                     topProgress.setVisibility(View.GONE);
+                    int resSize = result.size();
                     result.addAll(messages);
                     messages.clear();
                     messages.addAll(result);
-                    conversationsMessageRVAdapter.notifyDataSetChanged();
+                    int offset = msgRecyclerView.computeVerticalScrollOffset();
+                    int position = msgRecyclerView.getVerticalScrollbarPosition();
+                    int x = layoutManager.findLastVisibleItemPosition() - layoutManager.findFirstVisibleItemPosition();
+                    position += resSize+x;
+                    conversationsMessageRVAdapter.notifyMyDataChanged();
+                    msgRecyclerView.scrollToPosition(position);
+                    msgRecyclerView.offsetChildrenVertical(offset);
                 }
             });
         }
@@ -206,8 +261,13 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
     public void onMessageAdded(final Message message) {
         Log.d(TAG, "Message added");
         messages.add(message);
-        conversationsMessageRVAdapter.notifyDataSetChanged();
-        msgRecyclerView.smoothScrollToPosition(messages.size()-1);
+        conversationsMessageRVAdapter.notifyMyItemInserted(messages.size() - 1);
+        msgRecyclerView.post(new Runnable() {
+            @Override
+            public void run() {
+                msgRecyclerView.smoothScrollToPosition(conversationsMessageRVAdapter.getItemCount() - 1);
+            }
+        });
     }
 
     @Override

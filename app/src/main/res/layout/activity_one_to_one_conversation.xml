@@ -102,10 +102,26 @@
         android:id="@+id/messageRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/rl_otoc_send_msg_layout"
+        android:layout_above="@id/tv_otoc_loading_indicator"
         android:layout_below="@id/progress_top_otoc"
         android:paddingTop="8dp"
         android:paddingBottom="8dp" />
+
+    <TextView
+        android:layout_width="70dp"
+        android:layout_height="48dp"
+        android:id="@+id/tv_otoc_loading_indicator"
+        android:visibility="gone"
+        android:textColor="@color/dark_blue"
+        android:layout_marginEnd="16dp"
+        android:gravity="center_vertical"
+        android:text="Sending..."
+        android:fontFamily="@font/poppins_medium"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_above="@id/rl_otoc_send_msg_layout"
+        android:layout_alignParentEnd="true">
+    </TextView>
 
     <RelativeLayout
         android:id="@+id/rl_otoc_send_msg_layout"

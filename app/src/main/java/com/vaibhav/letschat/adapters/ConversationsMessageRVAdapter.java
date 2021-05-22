@@ -71,8 +71,7 @@ public class ConversationsMessageRVAdapter extends RecyclerView.Adapter<Recycler
     @Override
     public void onBindViewHolder(@NonNull @NotNull RecyclerView.ViewHolder holder, int position) {
         Animation animation = AnimationUtils.loadAnimation(context,
-                (position > lastPosition) ? R.anim.up_from_bottom
-                        : R.anim.down_from_top);
+                (position >= lastPosition) ? R.anim.up_from_bottom : R.anim.down_from_top);
         holder.itemView.startAnimation(animation);
         lastPosition = position;
         switch (holder.getItemViewType()) {
@@ -87,6 +86,14 @@ public class ConversationsMessageRVAdapter extends RecyclerView.Adapter<Recycler
     @Override
     public int getItemCount() {
         return messages.size();
+    }
+
+    public void notifyMyDataChanged() {
+        lastPosition = getItemCount();
+        this.notifyDataSetChanged();
+    }
+    public void notifyMyItemInserted(int pos) {
+        this.notifyItemInserted(pos);
     }
 
     @Override
