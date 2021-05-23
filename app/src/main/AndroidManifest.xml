@@ -33,7 +33,8 @@
         <activity
             android:name=".CallSettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".OneToOneCallActivity">
+            android:parentActivityName=".OneToOneCallActivity"
+            android:theme="@style/AppTheme.Settings">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.vaibhav.letschat.OneToOneCallActivity" />

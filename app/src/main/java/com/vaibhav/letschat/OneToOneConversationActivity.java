@@ -9,15 +9,21 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.animation.AnimationUtils;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -56,6 +62,7 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
     ProgressBar topProgress;
     TextView loadingIndicator;
     boolean isMessageSent = false;
+    RelativeLayout rootViewRL, sendMsgParent;
 
     boolean isOldMessagesLoading = false;
 
@@ -80,6 +87,8 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
         sendMsgTextET = findViewById(R.id.et_otoc_send_msg_text);
         topProgress = findViewById(R.id.progress_top_otoc);
         loadingIndicator = findViewById(R.id.tv_otoc_loading_indicator);
+        rootViewRL = findViewById(R.id.rl_otoc_root_parent);
+        sendMsgParent = findViewById(R.id.rl_otoc_send_msg_layout);
 
         conversationsMessageRVAdapter = new ConversationsMessageRVAdapter(messages, context);
         layoutManager = new LinearLayoutManager(this);
@@ -135,6 +144,12 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
                 startActivity(outToVideoCall);
             }
         });
+        attachIBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showMediaChooserOptions();
+            }
+        });
     }
 
     private void sendMessage(String messageBody) {
@@ -163,7 +178,7 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
                         }
                     } catch (InterruptedException e) {
                         e.printStackTrace();
-                        Log.d(TAG,e.getLocalizedMessage());
+                        Log.d(TAG, e.getLocalizedMessage());
                     }
                 }
             };
@@ -263,7 +278,7 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
                     int offset = msgRecyclerView.computeVerticalScrollOffset();
                     int position = msgRecyclerView.getVerticalScrollbarPosition();
                     int x = layoutManager.findLastVisibleItemPosition() - layoutManager.findFirstVisibleItemPosition();
-                    position += resSize+x;
+                    position += resSize + x;
                     conversationsMessageRVAdapter.notifyMyDataChanged();
                     msgRecyclerView.scrollToPosition(position);
                     msgRecyclerView.offsetChildrenVertical(offset);
@@ -323,5 +338,18 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
     @Override
     public void onSynchronizationChanged(Conversation conversation) {
 
+    }
+
+    private void showMediaChooserOptions() {
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.media_chooser_options_popup_layout, rootViewRL, false);
+        PopupWindow mediaChooserPopup = new PopupWindow(layout, RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        int[] a = new int[2];
+        attachIBtn.getLocationInWindow(a);
+        mediaChooserPopup.setFocusable(true);
+        mediaChooserPopup.showAsDropDown(sendMsgParent,0,-sendMsgParent.getHeight());
+        //mediaChooserPopup.showAtLocation(rootViewRL,Gravity.NO_GRAVITY,0,a[1]-attachIBtn.getHeight());
+        mediaChooserPopup.setAnimationStyle(R.style.PopupAnimationStyle);
+        mediaChooserPopup.update(0, 0, RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
     }
 }

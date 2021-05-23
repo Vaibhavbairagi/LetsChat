@@ -12,4 +12,14 @@
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
+    <style name="PopupAnimationStyle">
+        <item name="android:windowEnterAnimation">@anim/popup_show_from_left</item>
+        <item name="android:windowExitAnimation">@anim/popup_hide_to_left</item>
+    </style>
+
+    <style name="AppTheme.Settings" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorAccent">@color/dark_blue</item>
+        <item name="displayOptions">showHome|showTitle|homeAsUp</item>
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
+    </style>
 </resources>

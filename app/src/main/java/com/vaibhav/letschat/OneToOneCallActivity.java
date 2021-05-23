@@ -143,7 +143,8 @@ public class OneToOneCallActivity extends AppCompatActivity {
         setContentView(R.layout.activity_one_to_one_call);
         context = this;
         //Room name is created with the id of the patient and doctor together
-        roomName = getIntent().getStringExtra("roomName");
+        roomName = getIntent().getExtras().getString("roomName");
+        Log.d(TAG, "onCreate: room name "+ roomName);
         accessToken = ConversationsPreferences.getInstance().getAccessToken();
         if (accessToken == null || roomName == null) {
             Toast.makeText(this, "Error, please restart app!", Toast.LENGTH_SHORT).show();
@@ -441,6 +442,21 @@ public class OneToOneCallActivity extends AppCompatActivity {
     }
 
     public void connectToRoom(String roomName) {
+        /*
+         * Update preferred audio and video codec in case changed in settings
+         */
+        audioCodec = getAudioCodecPreference(CallSettingsActivity.PREF_AUDIO_CODEC,
+                CallSettingsActivity.PREF_AUDIO_CODEC_DEFAULT);
+        videoCodec = getVideoCodecPreference(CallSettingsActivity.PREF_VIDEO_CODEC,
+                CallSettingsActivity.PREF_VIDEO_CODEC_DEFAULT);
+        enableAutomaticSubscription = getAutomaticSubscriptionPreference(CallSettingsActivity.PREF_ENABLE_AUTOMATIC_SUBSCRIPTION,
+                CallSettingsActivity.PREF_ENABLE_AUTOMATIC_SUBSCRIPTION_DEFAULT);
+        /*
+         * Get latest encoding parameters
+         */
+
+
+        encodingParameters = getEncodingParameters();
         Log.d(TAG, "connectToRoomCalled");
         configureAudio(true);
         ConnectOptions.Builder connectOptionsBuilder = new ConnectOptions.Builder(accessToken)
@@ -482,7 +498,6 @@ public class OneToOneCallActivity extends AppCompatActivity {
         connectOptionsBuilder.enableAutomaticSubscription(enableAutomaticSubscription);
 
         room = Video.connect(this, connectOptionsBuilder.build(), roomListener());
-        setDisconnectAction();
     }
 
     /*
@@ -551,15 +566,14 @@ public class OneToOneCallActivity extends AppCompatActivity {
                 preferences.getString(CallSettingsActivity.PREF_SENDER_MAX_VIDEO_BITRATE,
                         CallSettingsActivity.PREF_SENDER_MAX_VIDEO_BITRATE_DEFAULT));
 
+        Log.d(TAG,"check bit + "+maxAudioBitrate + " "+maxVideoBitrate);
+
         return new EncodingParameters(maxAudioBitrate, maxVideoBitrate);
     }
 
     /*
      * The actions performed during disconnect.
      */
-    private void setDisconnectAction() {
-        finish();
-    }
 
     private View.OnClickListener disconnectClickListener() {
         return v -> {

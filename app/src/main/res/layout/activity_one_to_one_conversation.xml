@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rl_otoc_root_parent"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".OneToOneConversationActivity">
@@ -93,10 +94,10 @@
         android:id="@+id/progress_top_otoc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:indeterminate="true"
         android:layout_below="@id/rl_otoc_toolbar_layout"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="4dp" />
+        android:layout_marginTop="4dp"
+        android:indeterminate="true" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/messageRecyclerView"
@@ -108,20 +109,19 @@
         android:paddingBottom="8dp" />
 
     <TextView
+        android:id="@+id/tv_otoc_loading_indicator"
         android:layout_width="70dp"
         android:layout_height="48dp"
-        android:id="@+id/tv_otoc_loading_indicator"
-        android:visibility="gone"
-        android:textColor="@color/dark_blue"
+        android:layout_above="@id/rl_otoc_send_msg_layout"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:fontFamily="@font/poppins_medium"
         android:gravity="center_vertical"
         android:text="Sending..."
-        android:fontFamily="@font/poppins_medium"
-        android:layout_marginBottom="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_above="@id/rl_otoc_send_msg_layout"
-        android:layout_alignParentEnd="true">
-    </TextView>
+        android:textColor="@color/dark_blue"
+        android:visibility="gone"></TextView>
 
     <RelativeLayout
         android:id="@+id/rl_otoc_send_msg_layout"
