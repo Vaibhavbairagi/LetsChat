@@ -49,7 +49,8 @@ public class ConversationsActivity extends AppCompatActivity implements OnConver
 
     public static final String TAG = "LetsChat";
     //Todo:change user details
-    public String userId = "Hellov2", userName = "Vaibhav Bairagi";
+    public String userId = "Hiv2", userName = "Vaibhav Bairagi";
+
 
     RelativeLayout fullscreenProgressLayout;
 
@@ -186,22 +187,24 @@ public class ConversationsActivity extends AppCompatActivity implements OnConver
 
         @Override
         public void onError(ErrorInfo errorInfo) {
-            Log.d(TAG, "onerror: " + errorInfo.getMessage());
+            Log.d(TAG, "onE" +
+                    "" +
+                    "rror: " + errorInfo.getMessage());
         }
 
         @Override
         public void onUserUpdated(User user, User.UpdateReason reason) {
-            Log.d(TAG, "User updated" + user.getIdentity());
+            Log.d(TAG, "User updated: " + user.getIdentity());
         }
 
         @Override
         public void onUserSubscribed(User user) {
-            Log.d(TAG, "User subscribed" + user.getIdentity());
+            Log.d(TAG, "User subscribed: " + user.getIdentity());
         }
 
         @Override
         public void onUserUnsubscribed(User user) {
-            Log.d(TAG, "User unsubscribed" + user.getIdentity());
+            Log.d(TAG, "User unsubscribed: " + user.getIdentity());
         }
 
         @Override

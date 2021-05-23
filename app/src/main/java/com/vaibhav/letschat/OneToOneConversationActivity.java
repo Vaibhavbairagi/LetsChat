@@ -1,6 +1,7 @@
 package com.vaibhav.letschat;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -26,6 +27,11 @@ import com.twilio.conversations.ConversationListener;
 import com.twilio.conversations.ErrorInfo;
 import com.twilio.conversations.Message;
 import com.twilio.conversations.Participant;
+import com.twilio.video.ConnectOptions;
+import com.twilio.video.RemoteParticipant;
+import com.twilio.video.Room;
+import com.twilio.video.TwilioException;
+import com.twilio.video.Video;
 import com.vaibhav.letschat.adapters.ConversationsMessageRVAdapter;
 
 import org.jetbrains.annotations.NotNull;
@@ -118,6 +124,15 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
                 } else {
                     Toast.makeText(context, "Enter a msg to send", Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+        videoCallIv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent outToVideoCall = new Intent(OneToOneConversationActivity.this,OneToOneCallActivity.class);
+                //todo: get roomname properly
+                outToVideoCall.putExtra("roomName","hello");
+                startActivity(outToVideoCall);
             }
         });
     }
