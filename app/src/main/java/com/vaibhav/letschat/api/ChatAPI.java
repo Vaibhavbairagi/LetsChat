@@ -10,4 +10,9 @@ public interface ChatAPI {
     @FormUrlEncoded
     @POST("/api/createAccessToken")
     Call<AccessTokenResponse> generateNewAccessToken(@Field("userID") String userID);
+
+    @FormUrlEncoded
+    @POST("/api/updateFCMToken")
+    Call<UpdateFCMTokenResponse> updateFCMToken(@Field("token") String token);
+
 }
