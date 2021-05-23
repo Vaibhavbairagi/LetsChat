@@ -175,7 +175,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@color/transparent"
-                    android:src="@drawable/ic_baseline_attach_file_24" />
+                    android:src="@drawable/ic_baseline_add_24" />
             </androidx.cardview.widget.CardView>
 
 

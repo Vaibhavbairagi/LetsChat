@@ -13,7 +13,7 @@
         android:fromYScale="100%"
         android:interpolator="@android:anim/decelerate_interpolator"
         android:pivotX="0%"
-        android:pivotY="0%"
+        android:pivotY="100%"
         android:toXScale="0%"
         android:toYScale="0%" />
 </set>

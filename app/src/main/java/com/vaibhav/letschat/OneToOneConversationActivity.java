@@ -13,10 +13,12 @@ import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -63,6 +65,7 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
     TextView loadingIndicator;
     boolean isMessageSent = false;
     RelativeLayout rootViewRL, sendMsgParent;
+    PopupWindow mediaChooserPopup;
 
     boolean isOldMessagesLoading = false;
 
@@ -138,9 +141,9 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
         videoCallIv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent outToVideoCall = new Intent(OneToOneConversationActivity.this,OneToOneCallActivity.class);
+                Intent outToVideoCall = new Intent(OneToOneConversationActivity.this, OneToOneCallActivity.class);
                 //todo: get roomname properly
-                outToVideoCall.putExtra("roomName","hello");
+                outToVideoCall.putExtra("roomName", "hello");
                 startActivity(outToVideoCall);
             }
         });
@@ -150,6 +153,13 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
                 showMediaChooserOptions();
             }
         });
+
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.media_chooser_options_popup_layout, rootViewRL, false);
+        mediaChooserPopup = new PopupWindow(layout, RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        mediaChooserPopup.setFocusable(true);
+        mediaChooserPopup.setAnimationStyle(R.style.PopupAnimationStyle);
+        //todo:setup and open choosers
     }
 
     private void sendMessage(String messageBody) {
@@ -341,15 +351,13 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
     }
 
     private void showMediaChooserOptions() {
-        LayoutInflater inflater = getLayoutInflater();
-        View layout = inflater.inflate(R.layout.media_chooser_options_popup_layout, rootViewRL, false);
-        PopupWindow mediaChooserPopup = new PopupWindow(layout, RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        int[] a = new int[2];
-        attachIBtn.getLocationInWindow(a);
-        mediaChooserPopup.setFocusable(true);
-        mediaChooserPopup.showAsDropDown(sendMsgParent,0,-sendMsgParent.getHeight());
-        //mediaChooserPopup.showAtLocation(rootViewRL,Gravity.NO_GRAVITY,0,a[1]-attachIBtn.getHeight());
-        mediaChooserPopup.setAnimationStyle(R.style.PopupAnimationStyle);
-        mediaChooserPopup.update(0, 0, RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        int yOffset = -sendMsgParent.getHeight() - dpToPx(72);
+        mediaChooserPopup.showAsDropDown(sendMsgParent, 0, yOffset);
+        mediaChooserPopup.update();
+    }
+
+    public int dpToPx(int dp) {
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        return Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
     }
 }
