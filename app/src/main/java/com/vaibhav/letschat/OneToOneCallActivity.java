@@ -241,6 +241,9 @@ public class OneToOneCallActivity extends AppCompatActivity {
         primaryVideoView.setMirror(true);
         localVideoTrack.addRenderer(primaryVideoView);
         localVideoView = primaryVideoView;
+
+        //connect to the room
+        connectToRoom(roomName);
     }
 
     private CameraCapturer.CameraSource getAvailableCameraSource() {

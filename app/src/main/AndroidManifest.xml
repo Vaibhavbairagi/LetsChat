@@ -28,9 +28,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/MyTheme.NoActionBar">
-        <activity android:name=".CallSettingsActivity"></activity>
         <activity android:name=".OneToOneCallActivity" />
         <activity android:name=".OneToOneConversationActivity" />
+        <activity
+            android:name=".CallSettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:parentActivityName=".OneToOneCallActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.vaibhav.letschat.OneToOneCallActivity" />
+        </activity>
         <activity android:name=".ConversationsActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
