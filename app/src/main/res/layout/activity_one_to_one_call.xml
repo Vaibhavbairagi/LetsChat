@@ -45,13 +45,13 @@
             android:layout_gravity="center"
             android:src="@drawable/ic_mic_off_white_24dp" />
 
-<!--        <com.google.android.material.floatingactionbutton.FloatingActionButton-->
-<!--            android:id="@+id/connect_action_fab"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_margin="@dimen/fab_margin"-->
-<!--            app:fabSize="normal"-->
-<!--            android:src="@drawable/ic_video_call_white_24dp" />-->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/connect_action_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/fab_margin"
+            app:fabSize="normal"
+            android:src="@drawable/ic_call_end_white_24dp" />
 
     </LinearLayout>
 

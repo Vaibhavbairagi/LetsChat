@@ -1,14 +1,11 @@
 package com.vaibhav.letschat.fcm;
 
 import android.app.ActivityManager;
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.media.AudioAttributes;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -17,7 +14,6 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -26,11 +22,19 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.vaibhav.letschat.ConversationsActivity;
 import com.vaibhav.letschat.R;
+import com.vaibhav.letschat.api.ChatAPI;
+import com.vaibhav.letschat.api.UpdateFCMTokenResponse;
+import com.vaibhav.letschat.utils.RetrofitClient;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
 public class FCMListenerService extends FirebaseMessagingService {
 
@@ -42,25 +46,25 @@ public class FCMListenerService extends FirebaseMessagingService {
     private static final String MSG_NOTIFICATION_DESCRIPTION = "New Message Notification";
     private int notificationID = 1;
 
+    private static final String TAG = "FCMListenerService";
+
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-        Log.d("FCM", "notif: " + remoteMessage.toString());
-        Log.d("FCM", "onMessageReceived for FCM");
-
-        Log.d("FCM", "From: " + remoteMessage.getFrom());
-
-        Log.d("FCM", "Data Message Body: " + remoteMessage.getData());
+        Log.d(TAG, "notif: " + remoteMessage.toString());
+        Log.d(TAG, "onMessageReceived for FCM");
+        Log.d(TAG, "From: " + remoteMessage.getFrom());
+        Log.d(TAG, "Data Message Body: " + remoteMessage.getData());
 
         if (remoteMessage.getNotification() != null) {
-            Log.d("FCM", "Notification Message Body: " + remoteMessage.getNotification().getBody());
-            Log.e("FCM", "We do not parse notification body - leave it to system");
+            Log.d(TAG, "Notification Message Body: " + remoteMessage.getNotification().getBody());
+            Log.e(TAG, "We do not parse notification body - leave it to system");
         }
         if (isAppInBackground(getApplicationContext())) {
             notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
             if (remoteMessage.getData().size() > 0) {
                 JSONObject obj = new JSONObject(remoteMessage.getData());
-                Log.d("FCM", "onMessageReceived: " + obj);
+                Log.d(TAG, "onMessageReceived: " + obj);
                 JsonElement mJson = JsonParser.parseString(obj.toString());
                 Gson gson = new Gson();
                 NewMessageNotificationModel notificationModel = gson.fromJson(mJson, NewMessageNotificationModel.class);
@@ -108,7 +112,6 @@ public class FCMListenerService extends FirebaseMessagingService {
 
             }
         }
-
     }
 
     private int getStartIndexOfMessage(String msg) {
@@ -142,8 +145,32 @@ public class FCMListenerService extends FirebaseMessagingService {
     @Override
     public void onNewToken(@NonNull @NotNull String s) {
         super.onNewToken(s);
+        Log.d(TAG, "onNewToken: "+s);
         Intent intent = new Intent(this, RegistrationIntentService.class);
         intent.putExtra("fcmToken", s);
         startService(intent);
+
+        //Todo: make this api endpoint
+        Retrofit retrofit = RetrofitClient.getInstance();
+        ChatAPI chatAPI = retrofit.create(ChatAPI.class);
+        Call<UpdateFCMTokenResponse> call = chatAPI.updateFCMToken(s);
+        call.enqueue(new Callback<UpdateFCMTokenResponse>() {
+            @Override
+            public void onResponse(Call<UpdateFCMTokenResponse> call, Response<UpdateFCMTokenResponse> response) {
+                if (response.body() != null) {
+                    UpdateFCMTokenResponse res = response.body();
+                    Log.d(TAG, "FCM updation status: "+res.getStatus() );
+
+                } else {
+                    Log.d(TAG, "Null returned");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<UpdateFCMTokenResponse> call, Throwable t) {
+                Log.d(TAG, "Token updation failed:" + t.getMessage());
+            }
+        });
+
     }
 }
