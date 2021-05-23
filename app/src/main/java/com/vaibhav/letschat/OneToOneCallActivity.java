@@ -17,6 +17,7 @@ import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.MenuItem;
@@ -125,10 +126,9 @@ public class OneToOneCallActivity extends AppCompatActivity {
     private FloatingActionButton localVideoActionFab;
     private FloatingActionButton muteActionFab;
     private ProgressBar reconnectingProgressBar;
+    private FloatingActionButton connectActionFab;
     private AudioManager audioManager;
     private String remoteParticipantIdentity;
-    private MenuItem turnSpeakerOnMenuItem;
-    private MenuItem turnSpeakerOffMenuItem;
 
     private int previousAudioMode;
     private boolean previousMicrophoneMute;
@@ -144,7 +144,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
         context = this;
         //Room name is created with the id of the patient and doctor together
         roomName = getIntent().getExtras().getString("roomName");
-        Log.d(TAG, "onCreate: room name "+ roomName);
+        Log.d(TAG, "onCreate: room name " + roomName);
         accessToken = ConversationsPreferences.getInstance().getAccessToken();
         if (accessToken == null || roomName == null) {
             Toast.makeText(this, "Error, please restart app!", Toast.LENGTH_SHORT).show();
@@ -154,7 +154,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
         primaryVideoView = findViewById(R.id.primary_video_view);
         thumbnailVideoView = findViewById(R.id.thumbnail_video_view);
         reconnectingProgressBar = findViewById(R.id.reconnecting_progress_bar);
-
+        connectActionFab = findViewById(R.id.connect_action_fab);
         switchCameraActionFab = findViewById(R.id.switch_camera_action_fab);
         localVideoActionFab = findViewById(R.id.local_video_action_fab);
         muteActionFab = findViewById(R.id.mute_action_fab);
@@ -185,9 +185,6 @@ public class OneToOneCallActivity extends AppCompatActivity {
         }
 
         intializeUI();
-
-        //Start connection to room
-        //connectToRoom(roomName);
     }
 
     private boolean checkPermissionForCameraAndMicrophone() {
@@ -244,7 +241,12 @@ public class OneToOneCallActivity extends AppCompatActivity {
         localVideoView = primaryVideoView;
 
         //connect to the room
-        connectToRoom(roomName);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                connectToRoom(roomName);
+            }
+        }, 5000);
     }
 
     private CameraCapturer.CameraSource getAvailableCameraSource() {
@@ -365,82 +367,6 @@ public class OneToOneCallActivity extends AppCompatActivity {
         }
     }
 
-
-    /*
-     * Room events listener
-     */
-    @SuppressLint("SetTextI18n")
-    private Room.Listener roomListener() {
-        return new Room.Listener() {
-            @Override
-            public void onConnected(@NonNull @NotNull Room room) {
-                Log.d(TAG, "Connected to " + room.getName());
-                localParticipant = room.getLocalParticipant();
-                setTitle(room.getName());
-
-                for (RemoteParticipant remoteParticipant : room.getRemoteParticipants()) {
-                    addRemoteParticipant(remoteParticipant);
-                    break;
-                }
-            }
-
-            @Override
-            public void onConnectFailure(@NonNull @NotNull Room room, @NonNull @NotNull TwilioException twilioException) {
-                Log.d(TAG, "Connection failure to " + room.getName());
-                configureAudio(false);
-                intializeUI();
-            }
-
-            @Override
-            public void onReconnecting(@NonNull @NotNull Room room, @NonNull @NotNull TwilioException twilioException) {
-                Log.d(TAG, "Reconnecting to " + room.getName());
-                reconnectingProgressBar.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onReconnected(@NonNull @NotNull Room room) {
-                Log.d(TAG, "Reconnected to " + room.getName());
-                reconnectingProgressBar.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onDisconnected(@NonNull @NotNull Room room, @Nullable @org.jetbrains.annotations.Nullable TwilioException twilioException) {
-                Log.d(TAG, "Disconnected from " + room.getName());
-                localParticipant = null;
-                reconnectingProgressBar.setVisibility(View.GONE);
-                OneToOneCallActivity.this.room = null;
-                // Only reinitialize the UI if disconnect was not called from onDestroy()
-                if (!disconnectedFromOnDestroy) {
-                    configureAudio(false);
-                    intializeUI();
-                    moveLocalVideoToPrimaryView();
-                }
-            }
-
-            @Override
-            public void onParticipantConnected(@NonNull @NotNull Room room, @NonNull @NotNull RemoteParticipant remoteParticipant) {
-                Log.d(TAG,"participant connected");
-                addRemoteParticipant(remoteParticipant);
-            }
-
-            @Override
-            public void onParticipantDisconnected(@NonNull @NotNull Room room, @NonNull @NotNull RemoteParticipant remoteParticipant) {
-                Log.d(TAG,"participant disconnected");
-                removeRemoteParticipant(remoteParticipant);
-            }
-
-            @Override
-            public void onRecordingStarted(@NonNull @NotNull Room room) {
-
-            }
-
-            @Override
-            public void onRecordingStopped(@NonNull @NotNull Room room) {
-
-            }
-        };
-    }
-
     public void connectToRoom(String roomName) {
         /*
          * Update preferred audio and video codec in case changed in settings
@@ -504,6 +430,8 @@ public class OneToOneCallActivity extends AppCompatActivity {
      * The initial state when there is no active room.
      */
     private void intializeUI() {
+        connectActionFab.show();
+        connectActionFab.setOnClickListener(disconnectClickListener());
         switchCameraActionFab.show();
         switchCameraActionFab.setOnClickListener(switchCameraClickListener());
         localVideoActionFab.show();
@@ -566,7 +494,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
                 preferences.getString(CallSettingsActivity.PREF_SENDER_MAX_VIDEO_BITRATE,
                         CallSettingsActivity.PREF_SENDER_MAX_VIDEO_BITRATE_DEFAULT));
 
-        Log.d(TAG,"check bit + "+maxAudioBitrate + " "+maxVideoBitrate);
+        Log.d(TAG, "check bit + " + maxAudioBitrate + " " + maxVideoBitrate);
 
         return new EncodingParameters(maxAudioBitrate, maxVideoBitrate);
     }
@@ -575,122 +503,6 @@ public class OneToOneCallActivity extends AppCompatActivity {
      * The actions performed during disconnect.
      */
 
-    private View.OnClickListener disconnectClickListener() {
-        return v -> {
-            /*
-             * Disconnect from room
-             */
-            Log.d(TAG,"Disconnect clicked");
-            if (room != null) {
-                room.disconnect();
-            }
-            intializeUI();
-        };
-    }
-
-
-    private View.OnClickListener switchCameraClickListener() {
-        return v -> {
-            Log.d(TAG,"switch camera clicked");
-            if (cameraCapturerCompat != null) {
-                CameraCapturer.CameraSource cameraSource = cameraCapturerCompat.getCameraSource();
-                cameraCapturerCompat.switchCamera();
-                if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
-                    thumbnailVideoView.setMirror(cameraSource == CameraCapturer.CameraSource.BACK_CAMERA);
-                } else {
-                    primaryVideoView.setMirror(cameraSource == CameraCapturer.CameraSource.BACK_CAMERA);
-                }
-            }
-        };
-    }
-
-    private View.OnClickListener localVideoClickListener() {
-        return v -> {
-            /*
-             * Enable/disable the local video track
-             */
-            Log.d(TAG,"local video clicked");
-            if (localVideoTrack != null) {
-                boolean enable = !localVideoTrack.isEnabled();
-                localVideoTrack.enable(enable);
-                int icon;
-                if (enable) {
-                    icon = R.drawable.ic_videocam_white_24dp;
-                    switchCameraActionFab.show();
-                } else {
-                    icon = R.drawable.ic_videocam_off_black_24dp;
-                    switchCameraActionFab.hide();
-                }
-                localVideoActionFab.setImageDrawable(
-                        ContextCompat.getDrawable(OneToOneCallActivity.this, icon));
-            }
-        };
-    }
-
-    private View.OnClickListener muteClickListener() {
-        return v -> {
-            /*
-             * Enable/disable the local audio track. The results of this operation are
-             * signaled to other Participants in the same Room. When an audio track is
-             * disabled, the audio is muted.
-             */
-            Log.d(TAG,"mute clicked");
-            if (localAudioTrack != null) {
-                boolean enable = !localAudioTrack.isEnabled();
-                localAudioTrack.enable(enable);
-                int icon = enable ?
-                        R.drawable.ic_mic_white_24dp : R.drawable.ic_mic_off_black_24dp;
-                muteActionFab.setImageDrawable(ContextCompat.getDrawable(
-                        OneToOneCallActivity.this, icon));
-            }
-        };
-    }
-
-    private void configureAudio(boolean enable) {
-        if (enable) {
-            previousAudioMode = audioManager.getMode();
-            // Request audio focus before making any device switch
-            requestAudioFocus();
-            /*
-             * Use MODE_IN_COMMUNICATION as the default audio mode. It is required
-             * to be in this mode when playout and/or recording starts for the best
-             * possible VoIP performance. Some devices have difficulties with
-             * speaker mode if this is not set.
-             */
-            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-            /*
-             * Always disable microphone mute during a WebRTC call.
-             */
-            previousMicrophoneMute = audioManager.isMicrophoneMute();
-            audioManager.setMicrophoneMute(false);
-        } else {
-            audioManager.setMode(previousAudioMode);
-            audioManager.abandonAudioFocus(null);
-            audioManager.setMicrophoneMute(previousMicrophoneMute);
-        }
-    }
-
-    private void requestAudioFocus() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            AudioAttributes playbackAttributes = new AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                    .build();
-            AudioFocusRequest focusRequest =
-                    new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
-                            .setAudioAttributes(playbackAttributes)
-                            .setAcceptsDelayedFocusGain(true)
-                            .setOnAudioFocusChangeListener(
-                                    i -> {
-                                    })
-                            .build();
-            audioManager.requestAudioFocus(focusRequest);
-        } else {
-            audioManager.requestAudioFocus(null, AudioManager.STREAM_VOICE_CALL,
-                    AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
-        }
-    }
-    
     /*
      * Called when remote participant joins the room
      */
@@ -743,6 +555,81 @@ public class OneToOneCallActivity extends AppCompatActivity {
             thumbnailVideoView.setMirror(cameraCapturerCompat.getCameraSource() ==
                     CameraCapturer.CameraSource.FRONT_CAMERA);
         }
+    }
+
+    /*
+     * Room events listener
+     */
+    @SuppressLint("SetTextI18n")
+    private Room.Listener roomListener() {
+        return new Room.Listener() {
+            @Override
+            public void onConnected(@NonNull @NotNull Room room) {
+                Log.d(TAG, "Connected to " + room.getName());
+                localParticipant = room.getLocalParticipant();
+                setTitle(room.getName());
+
+                for (RemoteParticipant remoteParticipant : room.getRemoteParticipants()) {
+                    addRemoteParticipant(remoteParticipant);
+                    break;
+                }
+            }
+
+            @Override
+            public void onConnectFailure(@NonNull @NotNull Room room, @NonNull @NotNull TwilioException twilioException) {
+                Log.d(TAG, "Connection failure to " + room.getName());
+                configureAudio(false);
+                intializeUI();
+            }
+
+            @Override
+            public void onReconnecting(@NonNull @NotNull Room room, @NonNull @NotNull TwilioException twilioException) {
+                Log.d(TAG, "Reconnecting to " + room.getName());
+                reconnectingProgressBar.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onReconnected(@NonNull @NotNull Room room) {
+                Log.d(TAG, "Reconnected to " + room.getName());
+                reconnectingProgressBar.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onDisconnected(@NonNull @NotNull Room room, @Nullable @org.jetbrains.annotations.Nullable TwilioException twilioException) {
+                Log.d(TAG, "Disconnected from " + room.getName());
+                localParticipant = null;
+                reconnectingProgressBar.setVisibility(View.GONE);
+                OneToOneCallActivity.this.room = null;
+                // Only reinitialize the UI if disconnect was not called from onDestroy()
+                if (!disconnectedFromOnDestroy) {
+                    configureAudio(false);
+                    intializeUI();
+                    moveLocalVideoToPrimaryView();
+                }
+            }
+
+            @Override
+            public void onParticipantConnected(@NonNull @NotNull Room room, @NonNull @NotNull RemoteParticipant remoteParticipant) {
+                Log.d(TAG, "participant connected");
+                addRemoteParticipant(remoteParticipant);
+            }
+
+            @Override
+            public void onParticipantDisconnected(@NonNull @NotNull Room room, @NonNull @NotNull RemoteParticipant remoteParticipant) {
+                Log.d(TAG, "participant disconnected");
+                removeRemoteParticipant(remoteParticipant);
+            }
+
+            @Override
+            public void onRecordingStarted(@NonNull @NotNull Room room) {
+
+            }
+
+            @Override
+            public void onRecordingStopped(@NonNull @NotNull Room room) {
+
+            }
+        };
     }
 
     /*
@@ -1022,6 +909,122 @@ public class OneToOneCallActivity extends AppCompatActivity {
 
             }
         };
+    }
+
+    private View.OnClickListener disconnectClickListener() {
+        return v -> {
+            /*
+             * Disconnect from room
+             */
+            Log.d(TAG, "Disconnect clicked");
+            if (room != null) {
+                room.disconnect();
+            }
+            finish();
+        };
+    }
+
+
+    private View.OnClickListener switchCameraClickListener() {
+        return v -> {
+            Log.d(TAG, "switch camera clicked");
+            if (cameraCapturerCompat != null) {
+                CameraCapturer.CameraSource cameraSource = cameraCapturerCompat.getCameraSource();
+                cameraCapturerCompat.switchCamera();
+                if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
+                    thumbnailVideoView.setMirror(cameraSource == CameraCapturer.CameraSource.BACK_CAMERA);
+                } else {
+                    primaryVideoView.setMirror(cameraSource == CameraCapturer.CameraSource.BACK_CAMERA);
+                }
+            }
+        };
+    }
+
+    private View.OnClickListener localVideoClickListener() {
+        return v -> {
+            /*
+             * Enable/disable the local video track
+             */
+            Log.d(TAG, "local video clicked");
+            if (localVideoTrack != null) {
+                boolean enable = !localVideoTrack.isEnabled();
+                localVideoTrack.enable(enable);
+                int icon;
+                if (enable) {
+                    icon = R.drawable.ic_videocam_white_24dp;
+                    switchCameraActionFab.show();
+                } else {
+                    icon = R.drawable.ic_videocam_off_black_24dp;
+                    switchCameraActionFab.hide();
+                }
+                localVideoActionFab.setImageDrawable(
+                        ContextCompat.getDrawable(OneToOneCallActivity.this, icon));
+            }
+        };
+    }
+
+    private View.OnClickListener muteClickListener() {
+        return v -> {
+            /*
+             * Enable/disable the local audio track. The results of this operation are
+             * signaled to other Participants in the same Room. When an audio track is
+             * disabled, the audio is muted.
+             */
+            Log.d(TAG, "mute clicked");
+            if (localAudioTrack != null) {
+                boolean enable = !localAudioTrack.isEnabled();
+                localAudioTrack.enable(enable);
+                int icon = enable ?
+                        R.drawable.ic_mic_white_24dp : R.drawable.ic_mic_off_black_24dp;
+                muteActionFab.setImageDrawable(ContextCompat.getDrawable(
+                        OneToOneCallActivity.this, icon));
+            }
+        };
+    }
+
+    private void configureAudio(boolean enable) {
+        if (enable) {
+            previousAudioMode = audioManager.getMode();
+            // Request audio focus before making any device switch
+            requestAudioFocus();
+            /*
+             * Use MODE_IN_COMMUNICATION as the default audio mode. It is required
+             * to be in this mode when playout and/or recording starts for the best
+             * possible VoIP performance. Some devices have difficulties with
+             * speaker mode if this is not set.
+             */
+            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            /*
+             * Always disable microphone mute during a WebRTC call.
+             */
+            previousMicrophoneMute = audioManager.isMicrophoneMute();
+            audioManager.setMicrophoneMute(false);
+        } else {
+            audioManager.setMode(previousAudioMode);
+            audioManager.abandonAudioFocus(null);
+            audioManager.setMicrophoneMute(previousMicrophoneMute);
+        }
+    }
+
+    private void requestAudioFocus() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            AudioAttributes playbackAttributes = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build();
+            AudioFocusRequest focusRequest =
+                    new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+                            .setAudioAttributes(playbackAttributes)
+                            .setAcceptsDelayedFocusGain(true)
+                            .setOnAudioFocusChangeListener(
+                                    i -> {
+                                    })
+                            .build();
+            audioManager.requestAudioFocus(focusRequest);
+        } else {
+            audioManager.requestAudioFocus(null, AudioManager.STREAM_VOICE_CALL,
+                    AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+        }
     }
 
 }
