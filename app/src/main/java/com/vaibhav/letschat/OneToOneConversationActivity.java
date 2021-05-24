@@ -1,25 +1,13 @@
 package com.vaibhav.letschat;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.animation.AnimationUtils;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -29,28 +17,31 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.twilio.conversations.CallbackListener;
 import com.twilio.conversations.Conversation;
 import com.twilio.conversations.ConversationListener;
 import com.twilio.conversations.ErrorInfo;
 import com.twilio.conversations.Message;
 import com.twilio.conversations.Participant;
-import com.twilio.video.ConnectOptions;
-import com.twilio.video.RemoteParticipant;
-import com.twilio.video.Room;
-import com.twilio.video.TwilioException;
-import com.twilio.video.Video;
 import com.vaibhav.letschat.adapters.ConversationsMessageRVAdapter;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class OneToOneConversationActivity extends AppCompatActivity implements ConversationListener {
 
     private static final String TAG = "OneToOneConversation";
+    public static final String CALL_TYPE_VIDEO = "video";
+    public static final String CALL_TYPE_AUDIO = "call";
+    public static final String CALL_TYPE = "callType";
+
     ArrayList<Message> messages = new ArrayList<>();
     String sid;
     TextView convoNameTv;
@@ -142,8 +133,11 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
             @Override
             public void onClick(View v) {
                 Intent outToVideoCall = new Intent(OneToOneConversationActivity.this, OneToOneCallActivity.class);
-                //todo: get roomname properly
+                //todo: get roomName properly
+                outToVideoCall.putExtra("receiverFCM","token");
+                outToVideoCall.putExtra("receiverName","name");
                 outToVideoCall.putExtra("roomName", "hello");
+                outToVideoCall.putExtra(CALL_TYPE,CALL_TYPE_VIDEO);
                 startActivity(outToVideoCall);
             }
         });

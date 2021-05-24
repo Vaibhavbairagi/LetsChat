@@ -1,91 +1,33 @@
 {
   "project_info": {
-    "project_number": "456498921284",
-    "project_id": "conversations-quickstart",
-    "storage_bucket": "conversations-quickstart.appspot.com"
+    "project_number": "553502633253",
+    "project_id": "letschat-428f9",
+    "storage_bucket": "letschat-428f9.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:456498921284:android:d7f8ff487d21109528e111",
-        "android_client_info": {
-          "package_name": "com.twilio.conversationsquickstart"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "456498921284-p92cao7gs1vh2j9slu4ufr299mkeo48i.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDf1jFdg_4D-LkCFAzdUjAMrZiNzkC2qEM"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "456498921284-p92cao7gs1vh2j9slu4ufr299mkeo48i.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:456498921284:android:c029a76f39253e4a28e111",
-        "android_client_info": {
-          "package_name": "com.twilio.notify.quickstart"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "456498921284-p92cao7gs1vh2j9slu4ufr299mkeo48i.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDf1jFdg_4D-LkCFAzdUjAMrZiNzkC2qEM"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "456498921284-p92cao7gs1vh2j9slu4ufr299mkeo48i.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:456498921284:android:5de40702d581107a28e111",
+        "mobilesdk_app_id": "1:553502633253:android:87eaa096e9a0bfb87c7ecc",
         "android_client_info": {
           "package_name": "com.vaibhav.letschat"
         }
       },
       "oauth_client": [
         {
-          "client_id": "456498921284-p92cao7gs1vh2j9slu4ufr299mkeo48i.apps.googleusercontent.com",
+          "client_id": "553502633253-95df679vur332bq6h5lgpo7sbhdt9t1p.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDf1jFdg_4D-LkCFAzdUjAMrZiNzkC2qEM"
+          "current_key": "AIzaSyAg_b-iMtYi_hsFZFqz62Zsj3_MAzYg7YA"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "456498921284-p92cao7gs1vh2j9slu4ufr299mkeo48i.apps.googleusercontent.com",
+              "client_id": "553502633253-95df679vur332bq6h5lgpo7sbhdt9t1p.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

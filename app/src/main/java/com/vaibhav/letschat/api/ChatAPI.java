@@ -13,6 +13,9 @@ public interface ChatAPI {
 
     @FormUrlEncoded
     @POST("/api/updateFCMToken")
-    Call<UpdateFCMTokenResponse> updateFCMToken(@Field("token") String token);
+    Call<StatusResponse> updateFCMToken(@Field("token") String token);
 
+    @FormUrlEncoded
+    @POST("/api/callUser")
+    Call<StatusResponse> callUser(@Field("receiverFCMToken") String receiverFCMToken, @Field("callType") int type, @Field("callerName") String callerName );
 }

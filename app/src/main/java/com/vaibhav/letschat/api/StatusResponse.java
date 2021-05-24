@@ -1,12 +1,12 @@
 package com.vaibhav.letschat.api;
 
-public class UpdateFCMTokenResponse {
+public class StatusResponse {
     String status;
 
-    public UpdateFCMTokenResponse() {
+    public StatusResponse() {
     }
 
-    public UpdateFCMTokenResponse(String status) {
+    public StatusResponse(String status) {
         this.status = status;
     }
 

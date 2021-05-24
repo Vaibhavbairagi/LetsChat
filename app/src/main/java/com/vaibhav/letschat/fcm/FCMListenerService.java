@@ -23,7 +23,7 @@ import com.google.gson.JsonParser;
 import com.vaibhav.letschat.ConversationsActivity;
 import com.vaibhav.letschat.R;
 import com.vaibhav.letschat.api.ChatAPI;
-import com.vaibhav.letschat.api.UpdateFCMTokenResponse;
+import com.vaibhav.letschat.api.StatusResponse;
 import com.vaibhav.letschat.utils.RetrofitClient;
 
 import org.jetbrains.annotations.NotNull;
@@ -53,63 +53,66 @@ public class FCMListenerService extends FirebaseMessagingService {
         Log.d(TAG, "notif: " + remoteMessage.toString());
         Log.d(TAG, "onMessageReceived for FCM");
         Log.d(TAG, "From: " + remoteMessage.getFrom());
-        Log.d(TAG, "Data Message Body: " + remoteMessage.getData());
+        Log.d(TAG, "Data Message Body: " + remoteMessage.getData().toString());
 
         if (remoteMessage.getNotification() != null) {
             Log.d(TAG, "Notification Message Body: " + remoteMessage.getNotification().getBody());
-            Log.e(TAG, "We do not parse notification body - leave it to system");
         }
+
         if (isAppInBackground(getApplicationContext())) {
             notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
             if (remoteMessage.getData().size() > 0) {
+
                 JSONObject obj = new JSONObject(remoteMessage.getData());
                 Log.d(TAG, "onMessageReceived: " + obj);
                 JsonElement mJson = JsonParser.parseString(obj.toString());
                 Gson gson = new Gson();
                 NewMessageNotificationModel notificationModel = gson.fromJson(mJson, NewMessageNotificationModel.class);
+                //todo: handle the case where type is call
+                if(notificationModel.getTwiMessageType()!=null){
+                    String body = notificationModel.getTwiBody();
+                    String msg = body.substring(getStartIndexOfMessage(body) + 1);
 
-                String body = notificationModel.getTwiBody();
-                String msg = body.substring(getStartIndexOfMessage(body) + 1);
-
-                Intent intent = new Intent(this, ConversationsActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-                Uri uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                    Intent intent = new Intent(this, ConversationsActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+                    Uri uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    AudioAttributes attributes = new AudioAttributes.Builder()
-                            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-                            .build();
-                    notificationChannel = new NotificationChannel(CHANNEL_ID, MSG_NOTIFICATION_DESCRIPTION, NotificationManager.IMPORTANCE_HIGH);
-                    notificationChannel.enableLights(true);
-                    notificationManager.createNotificationChannel(notificationChannel);
-                    notificationChannel.setSound(uri, attributes);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        AudioAttributes attributes = new AudioAttributes.Builder()
+                                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                                .build();
+                        notificationChannel = new NotificationChannel(CHANNEL_ID, MSG_NOTIFICATION_DESCRIPTION, NotificationManager.IMPORTANCE_HIGH);
+                        notificationChannel.enableLights(true);
+                        notificationManager.createNotificationChannel(notificationChannel);
+                        notificationChannel.setSound(uri, attributes);
 
-                    notificationManager.createNotificationChannel(notificationChannel);
+                        notificationManager.createNotificationChannel(notificationChannel);
 
-                    builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                            .setSmallIcon(R.drawable.ic_baseline_message_24)
-                            .setContentTitle(notificationModel.getAuthor())
-                            .setContentText(msg)
-                            .setAutoCancel(true)
-                            .setSound(uri)
-                            .setDefaults(NotificationCompat.DEFAULT_ALL)
-                            .setContentIntent(pendingIntent);
-                } else {
-                    builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                            .setSmallIcon(R.drawable.ic_baseline_message_24)
-                            .setContentTitle(notificationModel.getAuthor())
-                            .setContentText(msg)
-                            //.setDefaults(NotificationCompat.DEFAULT_ALL)
-                            .setSound(uri)
-                            .setAutoCancel(true)
-                            .setPriority(NotificationCompat.PRIORITY_MAX)
-                            .setContentIntent(pendingIntent);
+                        builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                                .setChannelId(CHANNEL_ID)
+                                .setSmallIcon(R.drawable.ic_baseline_message_24)
+                                .setContentTitle(notificationModel.getAuthor())
+                                .setContentText(msg)
+                                .setAutoCancel(true)
+                                .setSound(uri)
+                                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                                .setContentIntent(pendingIntent);
+                    } else {
+                        builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                                .setSmallIcon(R.drawable.ic_baseline_message_24)
+                                .setContentTitle(notificationModel.getAuthor())
+                                .setContentText(msg)
+                                //.setDefaults(NotificationCompat.DEFAULT_ALL)
+                                .setSound(uri)
+                                .setAutoCancel(true)
+                                .setPriority(NotificationCompat.PRIORITY_MAX)
+                                .setContentIntent(pendingIntent);
+                    }
+                    notificationManager.notify(notificationID, builder.build());
                 }
-                notificationManager.notify(notificationID, builder.build());
-
             }
         }
     }
@@ -153,22 +156,22 @@ public class FCMListenerService extends FirebaseMessagingService {
         //Todo: make this api endpoint
         Retrofit retrofit = RetrofitClient.getInstance();
         ChatAPI chatAPI = retrofit.create(ChatAPI.class);
-        Call<UpdateFCMTokenResponse> call = chatAPI.updateFCMToken(s);
-        call.enqueue(new Callback<UpdateFCMTokenResponse>() {
+        Call<StatusResponse> call = chatAPI.updateFCMToken(s);
+        call.enqueue(new Callback<StatusResponse>() {
             @Override
-            public void onResponse(Call<UpdateFCMTokenResponse> call, Response<UpdateFCMTokenResponse> response) {
+            public void onResponse(Call<StatusResponse> call, Response<StatusResponse> response) {
                 if (response.body() != null) {
-                    UpdateFCMTokenResponse res = response.body();
-                    Log.d(TAG, "FCM updation status: "+res.getStatus() );
+                    StatusResponse res = response.body();
+                    Log.d(TAG, "Token updation onto BigOHealth server status: "+res.getStatus());
 
                 } else {
-                    Log.d(TAG, "Null returned");
+                    Log.d(TAG, "Null returned on Token updation onto BigOHealth server");
                 }
             }
 
             @Override
-            public void onFailure(Call<UpdateFCMTokenResponse> call, Throwable t) {
-                Log.d(TAG, "Token updation failed:" + t.getMessage());
+            public void onFailure(Call<StatusResponse> call, Throwable t) {
+                Log.d(TAG, "Token updation onto BigOHealth server failed:" + t.getMessage());
             }
         });
 

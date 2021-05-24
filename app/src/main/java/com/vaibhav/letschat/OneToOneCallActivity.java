@@ -1,12 +1,5 @@
 package com.vaibhav.letschat;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -17,13 +10,17 @@ import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.twilio.video.AudioCodec;
@@ -55,19 +52,32 @@ import com.twilio.video.VideoTrack;
 import com.twilio.video.VideoView;
 import com.twilio.video.Vp8Codec;
 import com.twilio.video.Vp9Codec;
+import com.vaibhav.letschat.api.ChatAPI;
+import com.vaibhav.letschat.api.StatusResponse;
 import com.vaibhav.letschat.utils.CameraCapturerCompat;
 import com.vaibhav.letschat.utils.ConversationsPreferences;
+import com.vaibhav.letschat.utils.RetrofitClient;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.Objects;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+
 public class OneToOneCallActivity extends AppCompatActivity {
 
     private static final String TAG = "OneToOneCall";
     Context context;
     String roomName;
+    public static final int CALL_TYPE_VIDEO = 0;
+    public static final int CALL_TYPE_AUDIO = 1;
+    public static final String CALL_TYPE = "callType";
+    String receiverName, receiverFCM;
+    int callType;
     private static final int CAMERA_MIC_PERMISSION_REQUEST_CODE = 100;
 
     /*
@@ -140,10 +150,16 @@ public class OneToOneCallActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_one_to_one_call);
-        context = this;
+
         //Room name is created with the id of the patient and doctor together
         roomName = getIntent().getExtras().getString("roomName");
+        receiverFCM = getIntent().getStringExtra("receiverFCM");
+        receiverName = getIntent().getStringExtra("receiverName");
+        //todo: add audio flow
+        callType = getIntent().getIntExtra(CALL_TYPE,CALL_TYPE_VIDEO);
+
+        setContentView(R.layout.activity_one_to_one_call);
+        context = this;
         Log.d(TAG, "onCreate: room name " + roomName);
         accessToken = ConversationsPreferences.getInstance().getAccessToken();
         if (accessToken == null || roomName == null) {
@@ -241,12 +257,8 @@ public class OneToOneCallActivity extends AppCompatActivity {
         localVideoView = primaryVideoView;
 
         //connect to the room
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                connectToRoom(roomName);
-            }
-        }, 5000);
+        connectToRoom(roomName);
+
     }
 
     private CameraCapturer.CameraSource getAvailableCameraSource() {
@@ -424,6 +436,9 @@ public class OneToOneCallActivity extends AppCompatActivity {
         connectOptionsBuilder.enableAutomaticSubscription(enableAutomaticSubscription);
 
         room = Video.connect(this, connectOptionsBuilder.build(), roomListener());
+
+        //calls the other user receiver
+        callUser();
     }
 
     /*
@@ -1027,4 +1042,36 @@ public class OneToOneCallActivity extends AppCompatActivity {
         }
     }
 
+    private void callUser(){
+        Retrofit retrofit = RetrofitClient.getInstance();
+        ChatAPI chatAPI = retrofit.create(ChatAPI.class);
+        //todo: add user name from perf
+        Call<StatusResponse> call = chatAPI.callUser(receiverFCM,callType,"Name");
+        call.enqueue(new Callback<StatusResponse>() {
+            @Override
+            public void onResponse(Call<StatusResponse> call, Response<StatusResponse> response) {
+                if (response.body() != null) {
+                    StatusResponse res = response.body();
+                    Log.d(TAG, "Call user status: "+res.getStatus());
+                    //todo: add appropriate handling for call status
+                    if(res.getStatus().equals("success")){
+                        Log.d(TAG, "onResponse: Call notification successful");
+                    }
+                    else{
+                        Log.d(TAG, "onResponse: Call notification failed");
+                    }
+
+                } else {
+                    Log.d(TAG, "Null returned on call to user");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<StatusResponse> call, Throwable t) {
+                Log.d(TAG, "Call to user failed:" + t.getMessage());
+                Toast.makeText(OneToOneCallActivity.this, "Server Unavailable to make calls, try again!", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        });
+    }
 }
