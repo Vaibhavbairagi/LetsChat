@@ -137,7 +137,7 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
                 //todo: get data properly
                 outToVideoCall.putExtra("receiverFCM","token");
                 outToVideoCall.putExtra("receiverName","name");
-                outToVideoCall.putExtra("roomName", "hello");
+                outToVideoCall.putExtra("roomName", conversation.getSid());
                 outToVideoCall.putExtra(CALL_TYPE,CALL_TYPE_VIDEO);
                 startActivity(outToVideoCall);
             }
@@ -149,7 +149,7 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
                 //todo: get data properly
                 outToVoiceCall.putExtra("receiverFCM","token");
                 outToVoiceCall.putExtra("receiverName","name");
-                outToVoiceCall.putExtra("roomName", "hello");
+                outToVoiceCall.putExtra("roomName", conversation.getSid());
                 outToVoiceCall.putExtra(CALL_TYPE,CALL_TYPE_AUDIO);
                 startActivity(outToVoiceCall);
             }

@@ -1,10 +1,5 @@
 package com.vaibhav.letschat;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,6 +7,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -299,7 +299,6 @@ public class ConversationsActivity extends AppCompatActivity implements OnConver
 
     @Override
     public void onConversationClicked(int position) {
-        //TODO: decide what all to do and open one to one chat
         Intent intent = new Intent(ConversationsActivity.this, OneToOneConversationActivity.class);
         intent.putExtra("conversationSid", conversations.get(position).getSid());
         startActivity(intent);

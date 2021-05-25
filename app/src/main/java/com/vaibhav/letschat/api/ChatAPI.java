@@ -17,5 +17,6 @@ public interface ChatAPI {
 
     @FormUrlEncoded
     @POST("/api/callUser")
-    Call<StatusResponse> callUser(@Field("receiverFCMToken") String receiverFCMToken, @Field("callType") int type, @Field("callerName") String callerName );
+    Call<StatusResponse> callUser(@Field("receiverFCMToken") String receiverFCMToken, @Field("callType") int type, @Field("callerName") String callerName,
+                                  @Field("roomName") String roomName);
 }

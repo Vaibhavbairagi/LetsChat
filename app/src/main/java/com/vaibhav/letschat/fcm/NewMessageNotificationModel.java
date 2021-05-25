@@ -30,6 +30,51 @@ public class NewMessageNotificationModel {
     @Expose
     private String conversationTitle;
 
+    private String callType;
+    private String callerName;
+    private String roomName;
+
+    public NewMessageNotificationModel(String author, String messageIndex, String messageSid, String twiMessageType, String conversationSid, String twiMessageId, String twiBody, String conversationTitle, String callType, String callerName, String roomName) {
+        this.author = author;
+        this.messageIndex = messageIndex;
+        this.messageSid = messageSid;
+        this.twiMessageType = twiMessageType;
+        this.conversationSid = conversationSid;
+        this.twiMessageId = twiMessageId;
+        this.twiBody = twiBody;
+        this.conversationTitle = conversationTitle;
+        this.callType = callType;
+        this.callerName = callerName;
+        this.roomName = roomName;
+    }
+
+    public NewMessageNotificationModel() {
+    }
+
+    public String getCallType() {
+        return callType;
+    }
+
+    public void setCallType(String callType) {
+        this.callType = callType;
+    }
+
+    public String getCallerName() {
+        return callerName;
+    }
+
+    public void setCallerName(String callerName) {
+        this.callerName = callerName;
+    }
+
+    public String getRoomName() {
+        return roomName;
+    }
+
+    public void setRoomName(String roomName) {
+        this.roomName = roomName;
+    }
+
     public String getAuthor() {
         return author;
     }

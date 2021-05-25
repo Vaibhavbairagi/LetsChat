@@ -20,6 +20,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -77,7 +78,9 @@ public class OneToOneCallActivity extends AppCompatActivity {
     public static final int CALL_TYPE_VIDEO = 0;
     public static final int CALL_TYPE_AUDIO = 1;
     public static final String CALL_TYPE = "callType";
-    String receiverName, receiverFCM;
+    //callerName is used when user RECEIVES a call
+    //receiverName is used when user MAKES a call
+    String receiverName, receiverFCM, callerName;
     int callType;
     private static final int CAMERA_MIC_PERMISSION_REQUEST_CODE = 100;
 
@@ -148,7 +151,8 @@ public class OneToOneCallActivity extends AppCompatActivity {
     private boolean isSpeakerPhoneEnabled = true;
     private boolean enableAutomaticSubscription;
 
-    private LinearLayout audioContainer, videoContainer;
+    private LinearLayout audioContainer;
+    private CoordinatorLayout videoContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -157,8 +161,9 @@ public class OneToOneCallActivity extends AppCompatActivity {
         //Room name is created with the id of the patient and doctor together
         roomName = getIntent().getExtras().getString("roomName");
         receiverFCM = getIntent().getStringExtra("receiverFCM");
+        //todo:display these in the UI
         receiverName = getIntent().getStringExtra("receiverName");
-        //todo: add audio flow
+        callerName = getIntent().getStringExtra("callerName");
         callType = getIntent().getIntExtra(CALL_TYPE, CALL_TYPE_VIDEO);
 
         setContentView(R.layout.activity_one_to_one_call);
@@ -448,7 +453,8 @@ public class OneToOneCallActivity extends AppCompatActivity {
         room = Video.connect(this, connectOptionsBuilder.build(), roomListener());
 
         //calls the other user receiver todo:disable when you dont need
-        callUser();
+        if (receiverName != null)
+            callUser();
     }
 
     /*
@@ -460,8 +466,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
             switchCameraActionFab.setOnClickListener(switchCameraClickListener());
             localVideoActionFab.show();
             localVideoActionFab.setOnClickListener(localVideoClickListener());
-        }
-        else{
+        } else {
             switchCameraActionFab.hide();
             localVideoActionFab.hide();
         }
@@ -696,7 +701,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
     }
 
     private void removeParticipantVideo(VideoTrack videoTrack) {
-        if(callType!=CALL_TYPE_VIDEO)
+        if (callType != CALL_TYPE_VIDEO)
             return;
         videoTrack.removeRenderer(primaryVideoView);
     }
@@ -1070,7 +1075,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
         Retrofit retrofit = RetrofitClient.getInstance();
         ChatAPI chatAPI = retrofit.create(ChatAPI.class);
         //todo: add user name from perf
-        Call<StatusResponse> call = chatAPI.callUser(receiverFCM, callType, "Name");
+        Call<StatusResponse> call = chatAPI.callUser(receiverFCM, callType, "Name", roomName);
         call.enqueue(new Callback<StatusResponse>() {
             @Override
             public void onResponse(Call<StatusResponse> call, Response<StatusResponse> response) {
