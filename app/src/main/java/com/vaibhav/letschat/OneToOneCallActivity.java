@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -147,6 +148,8 @@ public class OneToOneCallActivity extends AppCompatActivity {
     private boolean isSpeakerPhoneEnabled = true;
     private boolean enableAutomaticSubscription;
 
+    private LinearLayout audioContainer, videoContainer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -156,7 +159,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
         receiverFCM = getIntent().getStringExtra("receiverFCM");
         receiverName = getIntent().getStringExtra("receiverName");
         //todo: add audio flow
-        callType = getIntent().getIntExtra(CALL_TYPE,CALL_TYPE_VIDEO);
+        callType = getIntent().getIntExtra(CALL_TYPE, CALL_TYPE_VIDEO);
 
         setContentView(R.layout.activity_one_to_one_call);
         context = this;
@@ -174,6 +177,8 @@ public class OneToOneCallActivity extends AppCompatActivity {
         switchCameraActionFab = findViewById(R.id.switch_camera_action_fab);
         localVideoActionFab = findViewById(R.id.local_video_action_fab);
         muteActionFab = findViewById(R.id.mute_action_fab);
+        audioContainer = findViewById(R.id.audio_container);
+        videoContainer = findViewById(R.id.video_container);
 
         /*
          * Get shared preferences to read settings
@@ -246,15 +251,20 @@ public class OneToOneCallActivity extends AppCompatActivity {
         // Share your microphone
         localAudioTrack = LocalAudioTrack.create(this, true, LOCAL_AUDIO_TRACK_NAME);
 
-        // Share your camera
-        cameraCapturerCompat = new CameraCapturerCompat(this, getAvailableCameraSource());
-        localVideoTrack = LocalVideoTrack.create(this,
-                true,
-                cameraCapturerCompat.getVideoCapturer(),
-                LOCAL_VIDEO_TRACK_NAME);
-        primaryVideoView.setMirror(true);
-        localVideoTrack.addRenderer(primaryVideoView);
-        localVideoView = primaryVideoView;
+        if (callType == CALL_TYPE_VIDEO) {
+            // Share your camera
+            cameraCapturerCompat = new CameraCapturerCompat(this, getAvailableCameraSource());
+            localVideoTrack = LocalVideoTrack.create(this,
+                    true,
+                    cameraCapturerCompat.getVideoCapturer(),
+                    LOCAL_VIDEO_TRACK_NAME);
+            primaryVideoView.setMirror(true);
+            localVideoTrack.addRenderer(primaryVideoView);
+            localVideoView = primaryVideoView;
+        } else {
+            videoContainer.setVisibility(View.GONE);
+            audioContainer.setVisibility(View.VISIBLE);
+        }
 
         //connect to the room
         connectToRoom(roomName);
@@ -337,7 +347,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
         /*
          * If the local video track was released when the app was put in the background, recreate.
          */
-        if (localVideoTrack == null && checkPermissionForCameraAndMicrophone()) {
+        if (callType == CALL_TYPE_VIDEO && localVideoTrack == null && checkPermissionForCameraAndMicrophone()) {
             localVideoTrack = LocalVideoTrack.create(this,
                     true,
                     cameraCapturerCompat.getVideoCapturer(),
@@ -437,7 +447,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
 
         room = Video.connect(this, connectOptionsBuilder.build(), roomListener());
 
-        //calls the other user receiver
+        //calls the other user receiver todo:disable when you dont need
         callUser();
     }
 
@@ -445,12 +455,18 @@ public class OneToOneCallActivity extends AppCompatActivity {
      * The initial state when there is no active room.
      */
     private void intializeUI() {
+        if (callType == CALL_TYPE_VIDEO) {
+            switchCameraActionFab.show();
+            switchCameraActionFab.setOnClickListener(switchCameraClickListener());
+            localVideoActionFab.show();
+            localVideoActionFab.setOnClickListener(localVideoClickListener());
+        }
+        else{
+            switchCameraActionFab.hide();
+            localVideoActionFab.hide();
+        }
         connectActionFab.show();
         connectActionFab.setOnClickListener(disconnectClickListener());
-        switchCameraActionFab.show();
-        switchCameraActionFab.setOnClickListener(switchCameraClickListener());
-        localVideoActionFab.show();
-        localVideoActionFab.setOnClickListener(localVideoClickListener());
         muteActionFab.show();
         muteActionFab.setOnClickListener(muteClickListener());
     }
@@ -526,23 +542,25 @@ public class OneToOneCallActivity extends AppCompatActivity {
         /*
          * This app only displays video for one additional participant per Room
          */
-        if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
-            return;
-        }
-        remoteParticipantIdentity = remoteParticipant.getIdentity();
-
-        /*
-         * Add remote participant renderer
-         */
-        if (remoteParticipant.getRemoteVideoTracks().size() > 0) {
-            RemoteVideoTrackPublication remoteVideoTrackPublication =
-                    remoteParticipant.getRemoteVideoTracks().get(0);
+        if (callType == CALL_TYPE_VIDEO) {
+            if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
+                return;
+            }
+            remoteParticipantIdentity = remoteParticipant.getIdentity();
 
             /*
-             * Only render video tracks that are subscribed to
+             * Add remote participant renderer
              */
-            if (remoteVideoTrackPublication.isTrackSubscribed()) {
-                addRemoteParticipantVideo(Objects.requireNonNull(remoteVideoTrackPublication.getRemoteVideoTrack()));
+            if (remoteParticipant.getRemoteVideoTracks().size() > 0) {
+                RemoteVideoTrackPublication remoteVideoTrackPublication =
+                        remoteParticipant.getRemoteVideoTracks().get(0);
+
+                /*
+                 * Only render video tracks that are subscribed to
+                 */
+                if (remoteVideoTrackPublication.isTrackSubscribed()) {
+                    addRemoteParticipantVideo(Objects.requireNonNull(remoteVideoTrackPublication.getRemoteVideoTrack()));
+                }
             }
         }
 
@@ -556,6 +574,8 @@ public class OneToOneCallActivity extends AppCompatActivity {
      * Set primary view as renderer for participant video track
      */
     private void addRemoteParticipantVideo(VideoTrack videoTrack) {
+        if (callType != CALL_TYPE_VIDEO)
+            return;
         moveLocalVideoToThumbnailView();
         primaryVideoView.setMirror(false);
         videoTrack.addRenderer(primaryVideoView);
@@ -619,7 +639,8 @@ public class OneToOneCallActivity extends AppCompatActivity {
                 if (!disconnectedFromOnDestroy) {
                     configureAudio(false);
                     intializeUI();
-                    moveLocalVideoToPrimaryView();
+                    if (callType == CALL_TYPE_VIDEO)
+                        moveLocalVideoToPrimaryView();
                 }
             }
 
@@ -659,7 +680,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
         /*
          * Remove remote participant renderer
          */
-        if (!remoteParticipant.getRemoteVideoTracks().isEmpty()) {
+        if (!remoteParticipant.getRemoteVideoTracks().isEmpty() && callType == CALL_TYPE_VIDEO) {
             RemoteVideoTrackPublication remoteVideoTrackPublication =
                     remoteParticipant.getRemoteVideoTracks().get(0);
 
@@ -670,15 +691,18 @@ public class OneToOneCallActivity extends AppCompatActivity {
                 removeParticipantVideo(Objects.requireNonNull(remoteVideoTrackPublication.getRemoteVideoTrack()));
             }
         }
-        moveLocalVideoToPrimaryView();
+        if (callType == CALL_TYPE_VIDEO)
+            moveLocalVideoToPrimaryView();
     }
 
     private void removeParticipantVideo(VideoTrack videoTrack) {
+        if(callType!=CALL_TYPE_VIDEO)
+            return;
         videoTrack.removeRenderer(primaryVideoView);
     }
 
     private void moveLocalVideoToPrimaryView() {
-        if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
+        if (thumbnailVideoView != null && thumbnailVideoView.getVisibility() == View.VISIBLE) {
             thumbnailVideoView.setVisibility(View.GONE);
             if (localVideoTrack != null) {
                 localVideoTrack.removeRenderer(thumbnailVideoView);
@@ -1042,26 +1066,28 @@ public class OneToOneCallActivity extends AppCompatActivity {
         }
     }
 
-    private void callUser(){
+    private void callUser() {
         Retrofit retrofit = RetrofitClient.getInstance();
         ChatAPI chatAPI = retrofit.create(ChatAPI.class);
         //todo: add user name from perf
-        Call<StatusResponse> call = chatAPI.callUser(receiverFCM,callType,"Name");
+        Call<StatusResponse> call = chatAPI.callUser(receiverFCM, callType, "Name");
         call.enqueue(new Callback<StatusResponse>() {
             @Override
             public void onResponse(Call<StatusResponse> call, Response<StatusResponse> response) {
                 if (response.body() != null) {
                     StatusResponse res = response.body();
-                    Log.d(TAG, "Call user status: "+res.getStatus());
+                    Log.d(TAG, "Call user status: " + res.getStatus());
                     //todo: add appropriate handling for call status
-                    if(res.getStatus().equals("success")){
+                    if (res.getStatus().equals("success")) {
+                        //Ringing
                         Log.d(TAG, "onResponse: Call notification successful");
-                    }
-                    else{
+                    } else {
+                        //Receiver not able to connect
                         Log.d(TAG, "onResponse: Call notification failed");
                     }
 
                 } else {
+                    //Server error in callUser endpoint
                     Log.d(TAG, "Null returned on call to user");
                 }
             }

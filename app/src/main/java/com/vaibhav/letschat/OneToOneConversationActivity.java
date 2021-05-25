@@ -38,8 +38,8 @@ import java.util.List;
 public class OneToOneConversationActivity extends AppCompatActivity implements ConversationListener {
 
     private static final String TAG = "OneToOneConversation";
-    public static final String CALL_TYPE_VIDEO = "video";
-    public static final String CALL_TYPE_AUDIO = "call";
+    public static final int CALL_TYPE_VIDEO = 0;
+    public static final int CALL_TYPE_AUDIO = 1;
     public static final String CALL_TYPE = "callType";
 
     ArrayList<Message> messages = new ArrayList<>();
@@ -129,11 +129,12 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
                 }
             }
         });
+
         videoCallIv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent outToVideoCall = new Intent(OneToOneConversationActivity.this, OneToOneCallActivity.class);
-                //todo: get roomName properly
+                //todo: get data properly
                 outToVideoCall.putExtra("receiverFCM","token");
                 outToVideoCall.putExtra("receiverName","name");
                 outToVideoCall.putExtra("roomName", "hello");
@@ -141,6 +142,19 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
                 startActivity(outToVideoCall);
             }
         });
+        voiceCallIv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent outToVoiceCall = new Intent(OneToOneConversationActivity.this, OneToOneCallActivity.class);
+                //todo: get data properly
+                outToVoiceCall.putExtra("receiverFCM","token");
+                outToVoiceCall.putExtra("receiverName","name");
+                outToVoiceCall.putExtra("roomName", "hello");
+                outToVoiceCall.putExtra(CALL_TYPE,CALL_TYPE_AUDIO);
+                startActivity(outToVoiceCall);
+            }
+        });
+
         attachIBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

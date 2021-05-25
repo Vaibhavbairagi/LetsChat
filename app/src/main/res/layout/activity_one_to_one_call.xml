@@ -11,6 +11,9 @@
     <include
         layout="@layout/video_chat_ui" />
 
+    <include
+        layout="@layout/audio_chat_ui"
+        android:visibility="gone"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -54,5 +57,14 @@
             android:src="@drawable/ic_call_end_white_24dp" />
 
     </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/reconnecting_progress_bar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        android:visibility="gone" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
