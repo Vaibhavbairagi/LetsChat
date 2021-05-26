@@ -38,9 +38,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/MyTheme.NoActionBar">
-        <activity android:name=".CallReceiverActivity" />
+        <activity android:name=".CallReceiverActivity"
+            android:launchMode="singleTop"/>
         <activity android:name=".OneToOneCallActivity"
-android:launchMode="singleInstance"/>
+            android:launchMode="singleTop"/>
         <activity android:name=".OneToOneConversationActivity" />
         <activity
             android:name=".CallSettingsActivity"

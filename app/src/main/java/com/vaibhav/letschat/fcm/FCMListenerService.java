@@ -130,7 +130,6 @@ public class FCMListenerService extends FirebaseMessagingService {
                 Log.d(TAG, "callType: " + Integer.parseInt(notificationModel.getCallType()));
                 handleCall.putExtra("callType", Integer.parseInt(notificationModel.getCallType()));
                 //if activity already exists don't create a new one
-                handleCall.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     startForegroundService(handleCall);
                 } else {

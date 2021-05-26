@@ -12,11 +12,13 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.vaibhav.letschat.CallReceiverActivity;
 import com.vaibhav.letschat.OneToOneCallActivity;
@@ -26,6 +28,7 @@ public class CallReceiverService extends Service implements MediaPlayer.OnPrepar
 //    MediaPlayer mediaPlayer;
 //    Vibrator mvibrator;
 
+    //todo: add check if user is already on call
     private static final String TAG = "CallReceiverService";
     String roomName, callerName;
     int callType;
@@ -248,7 +251,7 @@ public class CallReceiverService extends Service implements MediaPlayer.OnPrepar
         handleCall.putExtra("callerName", callerName);
         handleCall.putExtra("callType", callType);
         //if activity already exists don't create a new one
-        handleCall.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+        handleCall.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, handleCall, PendingIntent.FLAG_UPDATE_CURRENT);
 
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -287,14 +290,32 @@ public class CallReceiverService extends Service implements MediaPlayer.OnPrepar
         }
         Log.d(TAG, "onMessageReceived: Call received");
         startForeground(callNotificationID, builder.build());
+        startClosingTimer();
 
         return START_STICKY;
+    }
+
+    private void startClosingTimer() {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                onDestroy();
+            }
+        };
+        Handler handler = new Handler();
+        //End call after the 25 secs if user hasn't already picked or cancelled
+        handler.postDelayed(runnable, 25000);
+        Log.d(TAG, "startClosingTimer: call ended based on timer");
     }
 
     @Override
     public void onDestroy() {
         r.stop();
         stopForeground(true);
+        LocalBroadcastManager localBroadcastManager = LocalBroadcastManager
+                .getInstance(CallReceiverService.this);
+        localBroadcastManager.sendBroadcast(new Intent(
+                CallReceiverActivity.callEndAction));
         super.onDestroy();
     }
 

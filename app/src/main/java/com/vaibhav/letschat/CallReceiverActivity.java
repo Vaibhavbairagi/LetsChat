@@ -1,8 +1,10 @@
 package com.vaibhav.letschat;
 
 import android.app.KeyguardManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,6 +13,7 @@ import android.view.WindowManager;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.vaibhav.letschat.service.CallReceiverService;
@@ -23,12 +26,26 @@ public class CallReceiverActivity extends AppCompatActivity {
     TextView callTv;
     FloatingActionButton connectCall, disconnectCall;
     Context context;
+    public static String callEndAction = "com.vaibhav.letschat.action.callEnd";
+
+    LocalBroadcastManager mLocalBroadcastManager;
+    BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //todo: update package name
+            if(intent.getAction().equals(callEndAction)){
+                finish();
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_call_receiver);
         context = this;
+
+        setupCallEndBroadcastReceiver();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             // For newer than Android Oreo: call setShowWhenLocked, setTurnScreenOn
             setShowWhenLocked(true);
@@ -49,11 +66,6 @@ public class CallReceiverActivity extends AppCompatActivity {
                     WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
         }
 
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON|
-                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD|
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED|
-                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
-
         roomName = getIntent().getStringExtra("roomName");
         callerName = getIntent().getStringExtra("callerName");
         callType = getIntent().getIntExtra("callType", OneToOneCallActivity.CALL_TYPE_VIDEO);
@@ -64,6 +76,14 @@ public class CallReceiverActivity extends AppCompatActivity {
         disconnectCall = findViewById(R.id.disconnect_action_fab);
         callTv.setText(callerName + " Calling...");
         initUI();
+    }
+
+    private void setupCallEndBroadcastReceiver() {
+        mLocalBroadcastManager = LocalBroadcastManager.getInstance(this);
+        IntentFilter mIntentFilter = new IntentFilter();
+        mIntentFilter.addAction(callEndAction);
+        mLocalBroadcastManager.registerReceiver(mBroadcastReceiver, mIntentFilter);
+
     }
 
     private void initUI() {
@@ -94,8 +114,8 @@ public class CallReceiverActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        clearForegroundNotification();
         super.onDestroy();
+        mLocalBroadcastManager.unregisterReceiver(mBroadcastReceiver);
     }
 
     private void clearForegroundNotification() {
