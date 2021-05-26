@@ -2,10 +2,10 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
-    android:background="@color/white"
     android:layout_height="wrap_content"
-    app:cardElevation="8dp"
-    app:cardCornerRadius="30dp">
+    android:background="@color/white"
+    app:cardCornerRadius="30dp"
+    app:cardElevation="8dp">
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -23,6 +23,43 @@
             app:cardCornerRadius="24dp">
 
             <ImageButton
+                android:id="@+id/ib_mcop_camera"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:adjustViewBounds="true"
+                android:background="@color/transparent"
+                android:src="@drawable/ic_baseline_camera_alt_24" />
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_margin="6dp"
+            android:layout_weight="1"
+            app:cardBackgroundColor="@color/dark_blue"
+            app:cardCornerRadius="24dp">
+
+            <ImageButton
+                android:id="@+id/ib_mcop_video"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:adjustViewBounds="true"
+                android:background="@color/transparent"
+                android:src="@drawable/ic_video_call_white_24dp" />
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_margin="6dp"
+            android:layout_weight="1"
+            app:cardBackgroundColor="@color/dark_blue"
+            app:cardCornerRadius="24dp">
+
+            <ImageButton
+                android:id="@+id/ib_mcop_gallery"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:adjustViewBounds="true"
@@ -40,7 +77,7 @@
             app:cardCornerRadius="24dp">
 
             <ImageButton
-                android:id="@+id/ib_mcop"
+                android:id="@+id/ib_mcop_attach_opt"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:adjustViewBounds="true"

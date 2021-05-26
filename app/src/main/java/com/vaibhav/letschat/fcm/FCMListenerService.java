@@ -20,11 +20,11 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.vaibhav.letschat.CallReceiverActivity;
 import com.vaibhav.letschat.ConversationsActivity;
 import com.vaibhav.letschat.R;
 import com.vaibhav.letschat.api.ChatAPI;
 import com.vaibhav.letschat.api.StatusResponse;
+import com.vaibhav.letschat.service.CallReceiverService;
 import com.vaibhav.letschat.utils.RetrofitClient;
 
 import org.jetbrains.annotations.NotNull;
@@ -43,9 +43,12 @@ public class FCMListenerService extends FirebaseMessagingService {
     NotificationChannel notificationChannel;
     NotificationCompat.Builder builder;
 
-    private static final String CHANNEL_ID = "com.vaibhav.LetsChat";
-    private static final String MSG_NOTIFICATION_DESCRIPTION = "New Message Notification";
-    private int notificationID = 1;
+    private final String MESSAGE_CHANNEL_ID = "com.vaibhav.letschat" + "Message";
+    private final String CALL_CHANNEL_ID = "com.vaibhav.letschat" + "Call";
+    private final String MSG_NOTIFICATION_DESCRIPTION = "New Message Notification";
+    private final String CALL_NOTIFICATION_DESCRIPTION = "New Incoming Call";
+    private int msgNotificationID = 1;
+    private int callNotificationID = 100;
 
     private static final String TAG = "FCMListenerService";
 
@@ -85,84 +88,96 @@ public class FCMListenerService extends FirebaseMessagingService {
                     AudioAttributes attributes = new AudioAttributes.Builder()
                             .setUsage(AudioAttributes.USAGE_NOTIFICATION)
                             .build();
-                    notificationChannel = new NotificationChannel(CHANNEL_ID, MSG_NOTIFICATION_DESCRIPTION, NotificationManager.IMPORTANCE_HIGH);
+                    notificationChannel = new NotificationChannel(MESSAGE_CHANNEL_ID, MSG_NOTIFICATION_DESCRIPTION, NotificationManager.IMPORTANCE_HIGH);
                     notificationChannel.enableLights(true);
                     notificationManager.createNotificationChannel(notificationChannel);
+                    notificationChannel.setLockscreenVisibility(NotificationCompat.VISIBILITY_PUBLIC);
                     notificationChannel.setSound(uri, attributes);
 
                     notificationManager.createNotificationChannel(notificationChannel);
 
-                    builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                            .setChannelId(CHANNEL_ID)
+                    builder = new NotificationCompat.Builder(this, MESSAGE_CHANNEL_ID)
+                            .setChannelId(MESSAGE_CHANNEL_ID)
                             .setSmallIcon(R.drawable.ic_baseline_message_24)
                             .setContentTitle(notificationModel.getAuthor())
                             .setContentText(msg)
                             .setAutoCancel(true)
+                            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+                            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                             .setSound(uri)
                             .setDefaults(NotificationCompat.DEFAULT_ALL)
                             .setContentIntent(pendingIntent);
                 } else {
-                    builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    builder = new NotificationCompat.Builder(this, MESSAGE_CHANNEL_ID)
                             .setSmallIcon(R.drawable.ic_baseline_message_24)
                             .setContentTitle(notificationModel.getAuthor())
                             .setContentText(msg)
                             //.setDefaults(NotificationCompat.DEFAULT_ALL)
                             .setSound(uri)
+                            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                             .setAutoCancel(true)
+                            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                             .setPriority(NotificationCompat.PRIORITY_MAX)
                             .setContentIntent(pendingIntent);
                 }
-                notificationManager.notify(notificationID, builder.build());
+                notificationManager.notify(msgNotificationID, builder.build());
             } else if (notificationModel.getRoomName() != null) {
 
                 //This means a call has been received
-                Intent handleCall = new Intent(FCMListenerService.this, CallReceiverActivity.class);
+                Intent handleCall = new Intent(this, CallReceiverService.class);
                 handleCall.putExtra("roomName", notificationModel.getRoomName());
                 handleCall.putExtra("callerName", notificationModel.getCallerName());
-                Log.d(TAG, "callType: "+Integer.parseInt(notificationModel.getCallType()));
+                Log.d(TAG, "callType: " + Integer.parseInt(notificationModel.getCallType()));
                 handleCall.putExtra("callType", Integer.parseInt(notificationModel.getCallType()));
                 //if activity already exists don't create a new one
-                handleCall.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-
-                PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, handleCall, PendingIntent.FLAG_UPDATE_CURRENT);
-                Uri uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
-
-
+                handleCall.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    AudioAttributes attributes = new AudioAttributes.Builder()
-                            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-                            .build();
-                    notificationChannel = new NotificationChannel(CHANNEL_ID, MSG_NOTIFICATION_DESCRIPTION, NotificationManager.IMPORTANCE_HIGH);
-                    notificationChannel.enableLights(true);
-                    notificationManager.createNotificationChannel(notificationChannel);
-                    notificationChannel.setSound(uri, attributes);
-
-                    notificationManager.createNotificationChannel(notificationChannel);
-
-                    builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                            .setChannelId(CHANNEL_ID)
-                            .setSmallIcon(R.drawable.ic_baseline_call_24)
-                            .setContentTitle("Incoming Call!")
-                            .setContentText(notificationModel.getCallerName())
-                            .setAutoCancel(false)
-                            .setSound(uri)
-                            .setPriority(NotificationCompat.PRIORITY_HIGH)
-                            .setCategory(NotificationCompat.CATEGORY_CALL)
-                            .setFullScreenIntent(pendingIntent,true);
+                    startForegroundService(handleCall);
                 } else {
-                    builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                            .setSmallIcon(R.drawable.ic_baseline_call_24)
-                            .setContentTitle("Incoming Call!")
-                            .setContentText(notificationModel.getCallerName())
-                            //.setDefaults(NotificationCompat.DEFAULT_ALL)
-                            .setSound(uri)
-                            .setAutoCancel(false)
-                            .setPriority(NotificationCompat.PRIORITY_MAX)
-                            .setCategory(NotificationCompat.CATEGORY_CALL)
-                            .setFullScreenIntent(pendingIntent,true);
+                    startService(handleCall);
                 }
-                Log.d(TAG, "onMessageReceived: Call received");
-                startForeground(notificationID,builder.build());
+//                PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, handleCall, PendingIntent.FLAG_UPDATE_CURRENT);
+//                Uri uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+//
+//
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                    AudioAttributes attributes = new AudioAttributes.Builder()
+//                            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+//                            .build();
+//                    notificationChannel = new NotificationChannel(CALL_CHANNEL_ID, CALL_NOTIFICATION_DESCRIPTION, NotificationManager.IMPORTANCE_HIGH);
+//                    notificationChannel.enableLights(true);
+//                    notificationManager.createNotificationChannel(notificationChannel);
+//                    notificationChannel.setSound(uri, attributes);
+//                    notificationChannel.setLockscreenVisibility(NotificationCompat.VISIBILITY_PUBLIC);
+//
+//                    notificationManager.createNotificationChannel(notificationChannel);
+//
+//                    builder = new NotificationCompat.Builder(this, CALL_CHANNEL_ID)
+//                            .setChannelId(CALL_CHANNEL_ID)
+//                            .setSmallIcon(R.drawable.ic_baseline_call_24)
+//                            .setContentTitle("Incoming Call!")
+//                            .setContentText(notificationModel.getCallerName())
+//                            .setAutoCancel(false)
+//                            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+//                            .setSound(uri)
+//                            .setPriority(NotificationCompat.PRIORITY_HIGH)
+//                            .setCategory(NotificationCompat.CATEGORY_CALL)
+//                            .setFullScreenIntent(pendingIntent, true);
+//                } else {
+//                    builder = new NotificationCompat.Builder(this, CALL_CHANNEL_ID)
+//                            .setSmallIcon(R.drawable.ic_baseline_call_24)
+//                            .setContentTitle("Incoming Call!")
+//                            .setContentText(notificationModel.getCallerName())
+//                            //.setDefaults(NotificationCompat.DEFAULT_ALL)
+//                            .setSound(uri)
+//                            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+//                            .setAutoCancel(false)
+//                            .setPriority(NotificationCompat.PRIORITY_MAX)
+//                            .setCategory(NotificationCompat.CATEGORY_CALL)
+//                            .setFullScreenIntent(pendingIntent, true);
+//                }
+//                Log.d(TAG, "onMessageReceived: Call received");
+//                startForeground(callNotificationID, builder.build());
             }
         }
     }

@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -157,7 +158,12 @@ public class OneToOneCallActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
+                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
+                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
+                WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON |
+                WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         //Room name is created with the id of the patient and doctor together
         roomName = getIntent().getExtras().getString("roomName");
         receiverFCM = getIntent().getStringExtra("receiverFCM");
@@ -1075,7 +1081,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
         Retrofit retrofit = RetrofitClient.getInstance();
         ChatAPI chatAPI = retrofit.create(ChatAPI.class);
         //todo: add user name from perf
-        Call<StatusResponse> call = chatAPI.callUser(receiverFCM, callType, "Name", roomName);
+        Call<StatusResponse> call = chatAPI.callUser(receiverFCM, callType, "Vaibhav Bairagi", roomName);
         call.enqueue(new Callback<StatusResponse>() {
             @Override
             public void onResponse(Call<StatusResponse> call, Response<StatusResponse> response) {

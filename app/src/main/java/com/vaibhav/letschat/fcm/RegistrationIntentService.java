@@ -16,23 +16,24 @@ import com.vaibhav.letschat.utils.ConversationsPreferences;
 import java.io.IOException;
 
 public class RegistrationIntentService extends IntentService {
-    private static final String[] TOPICS = { "global" };
+    private static final String[] TOPICS = {"global"};
+    ConversationsPreferences conversationsPreferences;
 
-    public RegistrationIntentService()
-    {
+    public RegistrationIntentService() {
         super("RegistrationIntentService");
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        conversationsPreferences = new ConversationsPreferences(getApplicationContext());
         String fcmToken = intent.getExtras().getString("fcmToken");
         AppPreferences.getInstance().saveFCMToken(fcmToken);
         try {
             AppController.getInstance().getConversationsClient().registerFCMToken(new ConversationsClient.FCMToken(fcmToken), new StatusListener() {
                 @Override
                 public void onSuccess() {
-                    ConversationsPreferences.getInstance().saveRegisteredFCMToken(fcmToken);
-                    Log.d(ConversationsActivity.TAG, "YAY "+fcmToken);
+                    conversationsPreferences.saveRegisteredFCMToken(fcmToken);
+                    Log.d(ConversationsActivity.TAG, "YAY " + fcmToken);
                 }
             });
             subscribeTopics(fcmToken);
