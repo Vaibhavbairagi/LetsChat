@@ -11,8 +11,7 @@
     <permission
         android:name="com.vaibhav.letschat.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
-
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -29,6 +28,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
 
     <application
         android:name=".AppController"
@@ -38,10 +38,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/MyTheme.NoActionBar">
-        <activity
-            android:name=".CallReceiverActivity"
-            android:exported="true" />
-        <activity android:name=".OneToOneCallActivity" />
+        <activity android:name=".CallReceiverActivity" />
+        <activity android:name=".OneToOneCallActivity"
+android:launchMode="singleInstance"/>
         <activity android:name=".OneToOneConversationActivity" />
         <activity
             android:name=".CallSettingsActivity"
@@ -70,9 +69,6 @@
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
-        <service
-            android:name=".service.DummyService"
-            android:enabled="true" />
 
         <service
             android:name=".service.CallReceiverService"

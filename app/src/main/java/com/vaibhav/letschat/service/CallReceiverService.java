@@ -6,51 +6,29 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.PixelFormat;
 import android.media.AudioAttributes;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Vibrator;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.WindowManager;
-import android.widget.TextView;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.NotificationCompat;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.vaibhav.letschat.CallReceiverActivity;
 import com.vaibhav.letschat.OneToOneCallActivity;
 import com.vaibhav.letschat.R;
 
 public class CallReceiverService extends Service implements MediaPlayer.OnPreparedListener {
-    private String CHANNEL_ID = "com.vaibhav.letschat" + "CallChannel";
-    private String CHANNEL_NAME = "com.vaibhav.letschat" + "Call Channel";
-    MediaPlayer mediaPlayer;
-    Vibrator mvibrator;
-    AudioManager audioManager;
-    AudioAttributes playbackAttributes;
-    private Handler handler;
-    AudioManager.OnAudioFocusChangeListener afChangeListener;
-    private boolean status = false;
-    private boolean vstatus = false;
+//    MediaPlayer mediaPlayer;
+//    Vibrator mvibrator;
 
-    private static final String TAG = "CallReceiverActivity";
+    private static final String TAG = "CallReceiverService";
     String roomName, callerName;
     int callType;
-    TextView callTv;
-    FloatingActionButton connectCall, disconnectCall;
-    private int WINDOW_MANAGER_OVERLAY_TYPE;
-    View parentView;
 
     NotificationManager notificationManager;
     NotificationChannel notificationChannel;
@@ -58,7 +36,6 @@ public class CallReceiverService extends Service implements MediaPlayer.OnPrepar
 
     private final String CALL_CHANNEL_ID = "com.vaibhav.letschat" + "Call";
     private final String CALL_NOTIFICATION_DESCRIPTION = "New Incoming Call";
-    private int msgNotificationID = 1;
     private int callNotificationID = 100;
     Context mContext;
     Ringtone r;
@@ -67,59 +44,7 @@ public class CallReceiverService extends Service implements MediaPlayer.OnPrepar
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "onCreate: ");
-        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
         mContext = getApplicationContext();
-        LayoutInflater li = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            WINDOW_MANAGER_OVERLAY_TYPE = WindowManager.LayoutParams.TYPE_PHONE;
-        } else {
-            WINDOW_MANAGER_OVERLAY_TYPE = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-        }
-
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.MATCH_PARENT,
-                WINDOW_MANAGER_OVERLAY_TYPE,
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
-                        WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
-                        WindowManager.LayoutParams.FLAG_FULLSCREEN |
-                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN |
-                        WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON,
-                PixelFormat.TRANSLUCENT);
-
-        params.gravity = Gravity.START | Gravity.TOP;
-        parentView = li.inflate(R.layout.activity_call_receiver, null);
-
-        wm.addView(parentView, params);
-
-    }
-
-    private void initUI() {
-        connectCall.show();
-        connectCall.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //startCall
-                Intent startCall = new Intent(CallReceiverService.this, OneToOneCallActivity.class);
-                startCall.putExtra("roomName", roomName);
-                startCall.putExtra("callerName", callerName);
-                startCall.putExtra("callType", callType);
-                startActivity(startCall);
-                stopForeground(true);
-                stopSelf();
-            }
-        });
-        disconnectCall.show();
-        disconnectCall.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //endCall
-                stopForeground(true);
-                stopSelf();
-            }
-        });
     }
 
 
@@ -135,18 +60,12 @@ public class CallReceiverService extends Service implements MediaPlayer.OnPrepar
         roomName = intent.getStringExtra("roomName");
         callerName = intent.getStringExtra("callerName");
         callType = intent.getIntExtra("callType", OneToOneCallActivity.CALL_TYPE_VIDEO);
-        Log.d(TAG, "onCreate: ");
+        Log.d(TAG, "Started callReceiverService");
 
-        callTv = parentView.findViewById(R.id.call_tv);
-        connectCall = parentView.findViewById(R.id.connect_action_fab);
-        disconnectCall = parentView.findViewById(R.id.disconnect_action_fab);
-        callTv.setText(callerName + " Calling...");
-        initUI();
         Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
         r = RingtoneManager.getRingtone(getApplicationContext(), notification);
         r.play();
 
-        int NOTIFICATION_ID = 120;
 //        try {
 //            audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 //
@@ -323,10 +242,10 @@ public class CallReceiverService extends Service implements MediaPlayer.OnPrepar
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
-        Intent handleCall = new Intent(CallReceiverService.this, CallReceiverService.class);
+
+        Intent handleCall = new Intent(CallReceiverService.this, CallReceiverActivity.class);
         handleCall.putExtra("roomName", roomName);
         handleCall.putExtra("callerName", callerName);
-        Log.d(TAG, "callType: " + callType);
         handleCall.putExtra("callType", callType);
         //if activity already exists don't create a new one
         handleCall.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
@@ -342,7 +261,6 @@ public class CallReceiverService extends Service implements MediaPlayer.OnPrepar
             notificationChannel.enableLights(true);
             notificationManager.createNotificationChannel(notificationChannel);
             notificationChannel.setLockscreenVisibility(NotificationCompat.VISIBILITY_PUBLIC);
-
             notificationManager.createNotificationChannel(notificationChannel);
 
             builder = new NotificationCompat.Builder(this, CALL_CHANNEL_ID)
@@ -376,37 +294,38 @@ public class CallReceiverService extends Service implements MediaPlayer.OnPrepar
     @Override
     public void onDestroy() {
         r.stop();
+        stopForeground(true);
         super.onDestroy();
     }
 
-    public void releaseVibration() {
-        try {
-            if (mvibrator != null) {
-                if (mvibrator.hasVibrator()) {
-                    mvibrator.cancel();
-                }
-                mvibrator = null;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void releaseMediaPlayer() {
-        try {
-            if (mediaPlayer != null) {
-                if (mediaPlayer.isPlaying()) {
-                    mediaPlayer.stop();
-                    mediaPlayer.reset();
-                    mediaPlayer.release();
-                }
-                mediaPlayer = null;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    public void releaseVibration() {
+//        try {
+//            if (mvibrator != null) {
+//                if (mvibrator.hasVibrator()) {
+//                    mvibrator.cancel();
+//                }
+//                mvibrator = null;
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    private void releaseMediaPlayer() {
+//        try {
+//            if (mediaPlayer != null) {
+//                if (mediaPlayer.isPlaying()) {
+//                    mediaPlayer.stop();
+//                    mediaPlayer.reset();
+//                    mediaPlayer.release();
+//                }
+//                mediaPlayer = null;
+//            }
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {

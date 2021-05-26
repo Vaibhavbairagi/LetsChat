@@ -1,7 +1,6 @@
 package com.vaibhav.letschat;
 
 import android.app.KeyguardManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -14,7 +13,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.vaibhav.letschat.service.DummyService;
+import com.vaibhav.letschat.service.CallReceiverService;
 
 public class CallReceiverActivity extends AppCompatActivity {
 
@@ -49,6 +48,11 @@ public class CallReceiverActivity extends AppCompatActivity {
                     WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON |
                     WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
         }
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON|
+                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD|
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED|
+                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
 
         roomName = getIntent().getStringExtra("roomName");
         callerName = getIntent().getStringExtra("callerName");
@@ -95,6 +99,7 @@ public class CallReceiverActivity extends AppCompatActivity {
     }
 
     private void clearForegroundNotification() {
-        startService(new Intent(this, DummyService.class));
+        Intent myService = new Intent(CallReceiverActivity.this, CallReceiverService.class);
+        stopService(myService);
     }
 }
