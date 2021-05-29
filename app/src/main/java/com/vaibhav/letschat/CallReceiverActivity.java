@@ -93,12 +93,13 @@ public class CallReceiverActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //startCall
                 Intent startCall = new Intent(CallReceiverActivity.this, OneToOneCallActivity.class);
+                startCall.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
                 startCall.putExtra("roomName", roomName);
                 startCall.putExtra("callerName", callerName);
                 startCall.putExtra("callType", callType);
                 startActivity(startCall);
                 clearForegroundNotification();
-                finish();
+                finishAndRemoveTask();
             }
         });
         disconnectCall.show();

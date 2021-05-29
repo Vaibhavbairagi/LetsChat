@@ -49,7 +49,7 @@ public class ConversationsActivity extends AppCompatActivity implements OnConver
 
     public static final String TAG = "LetsChat";
     //Todo:change user details
-    public String userId = "Hellov2", userName = "Vaibhav Bairagi";
+    public String userId = "Hiv2", userName = "Vaibhav Bairagi";
 
 
     RelativeLayout fullscreenProgressLayout;

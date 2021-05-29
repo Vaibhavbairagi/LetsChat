@@ -2,7 +2,12 @@ package com.vaibhav.letschat;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.AudioAttributes;
@@ -10,6 +15,7 @@ import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
@@ -23,6 +29,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -74,6 +81,14 @@ import retrofit2.Retrofit;
 public class OneToOneCallActivity extends AppCompatActivity {
 
     private static final String TAG = "OneToOneCall";
+    NotificationManager notificationManager;
+    NotificationChannel notificationChannel;
+    NotificationCompat.Builder builder;
+
+    String CALL_CHANNEL_ID = "com.vaibhav.letschat" + "OngoingCall";
+    String CALL_NOTIFICATION_DESCRIPTION = "Ongoing Call";
+    int callNotificationID = 101;
+
     Context context;
     String roomName;
     public static final int CALL_TYPE_VIDEO = 0;
@@ -178,7 +193,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
         accessToken = ConversationsPreferences.getInstance().getAccessToken();
         if (accessToken == null || roomName == null) {
             Toast.makeText(this, "Error, please restart app!", Toast.LENGTH_SHORT).show();
-            finish();
+            finishAndRemoveTask();
         }
 
         primaryVideoView = findViewById(R.id.primary_video_view);
@@ -217,6 +232,55 @@ public class OneToOneCallActivity extends AppCompatActivity {
         }
 
         intializeUI();
+        showOngoingCallNotification();
+    }
+
+    private void showOngoingCallNotification() {
+        Intent handleCall = new Intent(this, OneToOneCallActivity.class);
+        handleCall.putExtra("roomName", roomName);
+        handleCall.putExtra("callerName", callerName);
+        handleCall.putExtra("callType", callType);
+        //if activity already exists don't create a new one
+        handleCall.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, handleCall, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            AudioAttributes attributes = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .build();
+            notificationChannel = new NotificationChannel(CALL_CHANNEL_ID, CALL_NOTIFICATION_DESCRIPTION, NotificationManager.IMPORTANCE_DEFAULT);
+            notificationChannel.enableLights(true);
+            notificationManager.createNotificationChannel(notificationChannel);
+            notificationChannel.setLockscreenVisibility(NotificationCompat.VISIBILITY_PUBLIC);
+            notificationManager.createNotificationChannel(notificationChannel);
+
+            builder = new NotificationCompat.Builder(this, CALL_CHANNEL_ID)
+                    .setChannelId(CALL_CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_baseline_call_24)
+                    .setContentTitle("Ongoing call, tap here to Open!")
+                    .setContentText(callerName)
+                    .setAutoCancel(false)
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setCategory(NotificationCompat.CATEGORY_CALL)
+                    .setContentIntent(pendingIntent);
+        } else {
+            builder = new NotificationCompat.Builder(this, CALL_CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_baseline_call_24)
+                    .setContentTitle("Ongoing call, tap here to Open!")
+                    .setContentText(callerName)
+                    //.setDefaults(NotificationCompat.DEFAULT_ALL)
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                    .setAutoCancel(false)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setCategory(NotificationCompat.CATEGORY_CALL)
+                    .setContentIntent(pendingIntent);
+        }
+        Notification notification = builder.build();
+        notification.flags |= Notification.FLAG_NO_CLEAR;
+        notificationManager.notify(callNotificationID,notification);
     }
 
     private boolean checkPermissionForCameraAndMicrophone() {
@@ -334,6 +398,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
             localVideoTrack = null;
         }
 
+        notificationManager.cancel(callNotificationID);
         super.onDestroy();
     }
 
@@ -562,17 +627,17 @@ public class OneToOneCallActivity extends AppCompatActivity {
             /*
              * Add remote participant renderer
              */
-            if (remoteParticipant.getRemoteVideoTracks().size() > 0) {
-                RemoteVideoTrackPublication remoteVideoTrackPublication =
-                        remoteParticipant.getRemoteVideoTracks().get(0);
-
-                /*
-                 * Only render video tracks that are subscribed to
-                 */
-                if (remoteVideoTrackPublication.isTrackSubscribed()) {
-                    addRemoteParticipantVideo(Objects.requireNonNull(remoteVideoTrackPublication.getRemoteVideoTrack()));
-                }
-            }
+//            if (remoteParticipant.getRemoteVideoTracks().size() > 0) {
+//                RemoteVideoTrackPublication remoteVideoTrackPublication =
+//                        remoteParticipant.getRemoteVideoTracks().get(0);
+//
+//                /*
+//                 * Only render video tracks that are subscribed to
+//                 */
+//                if (remoteVideoTrackPublication.isTrackSubscribed()) {
+//                    addRemoteParticipantVideo(Objects.requireNonNull(remoteVideoTrackPublication.getRemoteVideoTrack()));
+//                }
+//            }
         }
 
         /*
@@ -665,6 +730,8 @@ public class OneToOneCallActivity extends AppCompatActivity {
             public void onParticipantDisconnected(@NonNull @NotNull Room room, @NonNull @NotNull RemoteParticipant remoteParticipant) {
                 Log.d(TAG, "participant disconnected");
                 removeRemoteParticipant(remoteParticipant);
+                Toast.makeText(context, "Other user has left the call, ending call.", Toast.LENGTH_SHORT).show();
+                finishAndRemoveTask();
             }
 
             @Override
@@ -902,7 +969,12 @@ public class OneToOneCallActivity extends AppCompatActivity {
                         remoteParticipant.getIdentity(),
                         remoteVideoTrack.isEnabled(),
                         remoteVideoTrack.getName()));
-                addRemoteParticipantVideo(remoteVideoTrack);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        addRemoteParticipantVideo(remoteVideoTrack);
+                    }
+                },3000);
             }
 
             @Override
@@ -970,7 +1042,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
             if (room != null) {
                 room.disconnect();
             }
-            finish();
+            finishAndRemoveTask();
         };
     }
 
@@ -1107,7 +1179,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
             public void onFailure(Call<StatusResponse> call, Throwable t) {
                 Log.d(TAG, "Call to user failed:" + t.getMessage());
                 Toast.makeText(OneToOneCallActivity.this, "Server Unavailable to make calls, try again!", Toast.LENGTH_SHORT).show();
-                finish();
+                finishAndRemoveTask();
             }
         });
     }

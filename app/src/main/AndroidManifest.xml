@@ -39,9 +39,13 @@
         android:supportsRtl="true"
         android:theme="@style/MyTheme.NoActionBar">
         <activity android:name=".CallReceiverActivity"
-            android:launchMode="singleTop"/>
+            android:documentLaunchMode="intoExisting"
+            android:excludeFromRecents="true"
+            android:launchMode="standard"/>
         <activity android:name=".OneToOneCallActivity"
-            android:launchMode="singleTop"/>
+            android:documentLaunchMode="intoExisting"
+            android:excludeFromRecents="true"
+            android:launchMode="standard"/>
         <activity android:name=".OneToOneConversationActivity" />
         <activity
             android:name=".CallSettingsActivity"

@@ -14,7 +14,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -24,8 +23,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -56,6 +53,7 @@ import java.util.List;
 public class OneToOneConversationActivity extends AppCompatActivity implements ConversationListener {
 
     private static final String TAG = "OneToOneConversation";
+    String token = "fim66bx1Tyu4uD4zCc_nFe:APA91bFIjtNeVAXVJ8ehn517g2dQO_TRl0IABcOhVfAwc4tU4fZjEvb50li0_OPURz_ow6MSACf1MwFIosfo9QUc7tzOY_j_gKrmlsmx_SPT5fB2nz4qd4RbxIWSKbJWjK2Id9K-3OaL";
     public static final int CALL_TYPE_VIDEO = 0;
     public static final int CALL_TYPE_AUDIO = 1;
     public static final String CALL_TYPE = "callType";
@@ -160,8 +158,9 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
             @Override
             public void onClick(View v) {
                 Intent outToVideoCall = new Intent(OneToOneConversationActivity.this, OneToOneCallActivity.class);
+                outToVideoCall.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
                 //todo: get roomName properly
-                outToVideoCall.putExtra("receiverFCM", "dozoF_0tTAGANM0V4etmNE:APA91bGHKEe6gQW2ZfxJG48mSZr9QVYWia2YrJVxml0Y55sbTHv78aHCuzXEHFrSCYsQpBvM4ioAUJjl-5-aA2dK-LUGED6MSPcdk5PzsBzj95kDaqjVXpggn_A0OLs36jPxZdf48DrP");
+                outToVideoCall.putExtra("receiverFCM", token);
                 outToVideoCall.putExtra("receiverName", "Ayush");
                 outToVideoCall.putExtra("roomName", conversation.getSid());
                 outToVideoCall.putExtra(CALL_TYPE, CALL_TYPE_VIDEO);
@@ -172,8 +171,9 @@ public class OneToOneConversationActivity extends AppCompatActivity implements C
             @Override
             public void onClick(View v) {
                 Intent outToVoiceCall = new Intent(OneToOneConversationActivity.this, OneToOneCallActivity.class);
+                outToVoiceCall.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
                 //todo: get data properly
-                outToVoiceCall.putExtra("receiverFCM","dozoF_0tTAGANM0V4etmNE:APA91bGHKEe6gQW2ZfxJG48mSZr9QVYWia2YrJVxml0Y55sbTHv78aHCuzXEHFrSCYsQpBvM4ioAUJjl-5-aA2dK-LUGED6MSPcdk5PzsBzj95kDaqjVXpggn_A0OLs36jPxZdf48DrP");
+                outToVoiceCall.putExtra("receiverFCM",token);
                 outToVoiceCall.putExtra("receiverName","Ayush");
                 outToVoiceCall.putExtra("roomName", conversation.getSid());
                 outToVoiceCall.putExtra(CALL_TYPE,CALL_TYPE_AUDIO);
