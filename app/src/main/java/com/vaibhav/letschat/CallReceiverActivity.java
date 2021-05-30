@@ -52,8 +52,8 @@ public class CallReceiverActivity extends AppCompatActivity {
             setTurnScreenOn(true);
 
             // If you want to display the keyguard to prompt the user to unlock the phone:
-            KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
-            keyguardManager.requestDismissKeyguard(this, null);
+//            KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+//            keyguardManager.requestDismissKeyguard(this, null);
 
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
                     WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON);

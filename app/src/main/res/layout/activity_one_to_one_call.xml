@@ -20,6 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:orientation="vertical"
+        android:id="@+id/ll_call_actions_layout"
         android:layout_margin="20dp">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton

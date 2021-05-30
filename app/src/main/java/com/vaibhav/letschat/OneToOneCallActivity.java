@@ -2,14 +2,17 @@ package com.vaibhav.letschat;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.KeyguardManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.PictureInPictureParams;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
@@ -18,6 +21,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.util.Rational;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
@@ -159,6 +163,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
     private FloatingActionButton connectActionFab;
     private AudioManager audioManager;
     private String remoteParticipantIdentity;
+    private LinearLayout callActionsLL;
 
     private int previousAudioMode;
     private boolean previousMicrophoneMute;
@@ -173,12 +178,27 @@ public class OneToOneCallActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
-                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
-                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
-                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
-                WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON |
-                WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            // For newer than Android Oreo: call setShowWhenLocked, setTurnScreenOn
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+
+            // If you want to display the keyguard to prompt the user to unlock the phone:
+            KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+            keyguardManager.requestDismissKeyguard(this, null);
+
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
+                    WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON);
+        } else {
+            // For older versions, do it as you did before.
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
+                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
+                    WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
+                    WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON |
+                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+        }
+
         //Room name is created with the id of the patient and doctor together
         roomName = getIntent().getExtras().getString("roomName");
         receiverFCM = getIntent().getStringExtra("receiverFCM");
@@ -205,6 +225,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
         muteActionFab = findViewById(R.id.mute_action_fab);
         audioContainer = findViewById(R.id.audio_container);
         videoContainer = findViewById(R.id.video_container);
+        callActionsLL = findViewById(R.id.ll_call_actions_layout);
 
         /*
          * Get shared preferences to read settings
@@ -280,7 +301,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
         }
         Notification notification = builder.build();
         notification.flags |= Notification.FLAG_NO_CLEAR;
-        notificationManager.notify(callNotificationID,notification);
+        notificationManager.notify(callNotificationID, notification);
     }
 
     private boolean checkPermissionForCameraAndMicrophone() {
@@ -354,58 +375,33 @@ public class OneToOneCallActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
-        /*
-         * Release the local video track before going in the background. This ensures that the
-         * camera can be used by other applications while this app is in the background.
-         */
-        if (localVideoTrack != null) {
-            /*
-             * If this local video track is being shared in a Room, unpublish from room before
-             * releasing the video track. Participants will be notified that the track has been
-             * unpublished.
-             */
-            if (localParticipant != null) {
-                localParticipant.unpublishTrack(localVideoTrack);
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode()) {
 
-            localVideoTrack.release();
-            localVideoTrack = null;
+        } else {
+            /*
+             * Release the local video track before going in the background. This ensures that the
+             * camera can be used by other applications while this app is in the background.
+             */
+            if (localVideoTrack != null) {
+                /*
+                 * If this local video track is being shared in a Room, unpublish from room before
+                 * releasing the video track. Participants will be notified that the track has been
+                 * unpublished.
+                 */
+                if (localParticipant != null) {
+                    localParticipant.unpublishTrack(localVideoTrack);
+                }
+
+                localVideoTrack.release();
+                localVideoTrack = null;
+            }
         }
         super.onPause();
     }
 
     @Override
-    protected void onDestroy() {
-        /*
-         * Always disconnect from the room before leaving the Activity to
-         * ensure any memory allocated to the Room resource is freed.
-         */
-        if (room != null && room.getState() != Room.State.DISCONNECTED) {
-            room.disconnect();
-            disconnectedFromOnDestroy = true;
-        }
-
-        /*
-         * Release the local audio and video tracks ensuring any memory allocated to audio
-         * or video is freed.
-         */
-        if (localAudioTrack != null) {
-            localAudioTrack.release();
-            localAudioTrack = null;
-        }
-        if (localVideoTrack != null) {
-            localVideoTrack.release();
-            localVideoTrack = null;
-        }
-
-        notificationManager.cancel(callNotificationID);
-        super.onDestroy();
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
-
         /*
          * Update preferred audio and video codec in case changed in settings
          */
@@ -463,6 +459,34 @@ public class OneToOneCallActivity extends AppCompatActivity {
                     View.GONE :
                     View.VISIBLE);
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        /*
+         * Always disconnect from the room before leaving the Activity to
+         * ensure any memory allocated to the Room resource is freed.
+         */
+        if (room != null && room.getState() != Room.State.DISCONNECTED) {
+            room.disconnect();
+            disconnectedFromOnDestroy = true;
+        }
+
+        /*
+         * Release the local audio and video tracks ensuring any memory allocated to audio
+         * or video is freed.
+         */
+        if (localAudioTrack != null) {
+            localAudioTrack.release();
+            localAudioTrack = null;
+        }
+        if (localVideoTrack != null) {
+            localVideoTrack.release();
+            localVideoTrack = null;
+        }
+
+        notificationManager.cancel(callNotificationID);
+        super.onDestroy();
     }
 
     public void connectToRoom(String roomName) {
@@ -974,7 +998,7 @@ public class OneToOneCallActivity extends AppCompatActivity {
                     public void run() {
                         addRemoteParticipantVideo(remoteVideoTrack);
                     }
-                },3000);
+                }, 3000);
             }
 
             @Override
@@ -1183,4 +1207,48 @@ public class OneToOneCallActivity extends AppCompatActivity {
             }
         });
     }
+
+    @Override
+    protected void onUserLeaveHint() {
+        if (callType == CALL_TYPE_VIDEO) {
+            goIntoPIPMode();
+        }
+    }
+
+    private void goIntoPIPMode() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                PictureInPictureParams.Builder paramsBuilder = new PictureInPictureParams.Builder();
+                Rational aspectRatio = new Rational(getWindow().getDecorView().getWidth(),
+                        getWindow().getDecorView().getHeight());
+                paramsBuilder.setAspectRatio(aspectRatio);
+                setPictureInPictureParams(paramsBuilder.build());
+            }
+            enterPictureInPictureMode();
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (callType == CALL_TYPE_VIDEO) {
+            goIntoPIPMode();
+        }
+    }
+
+    @Override
+    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
+        if (isInPictureInPictureMode) {
+            //todo: show only other person's video hide everything else
+            Log.d(TAG, "onPictureInPictureModeChanged: entered PIP mode");
+            callActionsLL.setVisibility(View.GONE);
+            thumbnailVideoView.setVisibility(View.GONE);
+        } else {
+            //todo: show everything
+            Log.d(TAG, "onPictureInPictureModeChanged: exited PIP mode");
+            callActionsLL.setVisibility(View.VISIBLE);
+            thumbnailVideoView.setVisibility(View.VISIBLE);
+        }
+    }
+
 }

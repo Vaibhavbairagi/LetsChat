@@ -11,7 +11,8 @@
     <permission
         android:name="com.vaibhav.letschat.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -38,15 +39,22 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/MyTheme.NoActionBar">
-        <activity android:name=".CallReceiverActivity"
+        <activity
+            android:name=".CallReceiverActivity"
             android:documentLaunchMode="intoExisting"
             android:excludeFromRecents="true"
-            android:launchMode="standard"/>
-        <activity android:name=".OneToOneCallActivity"
+            android:launchMode="standard"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".OneToOneCallActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:documentLaunchMode="intoExisting"
             android:excludeFromRecents="true"
-            android:launchMode="standard"/>
-        <activity android:name=".OneToOneConversationActivity" />
+            android:launchMode="singleInstance"
+            android:supportsPictureInPicture="true" />
+        <activity
+            android:name=".OneToOneConversationActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".CallSettingsActivity"
             android:label="@string/title_activity_settings"
@@ -56,7 +64,9 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.vaibhav.letschat.OneToOneCallActivity" />
         </activity>
-        <activity android:name=".ConversationsActivity">
+        <activity
+            android:name=".ConversationsActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
